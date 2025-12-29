@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     implementation("org.spongepowered:configurate-yaml:4.2.0")
 
     implementation("io.netty:netty-handler:4.2.7.Final")
@@ -23,7 +23,9 @@ dependencies {
     implementation("io.netty:netty-transport-native-kqueue:4.2.7.Final:osx-x86_64")
     implementation("io.netty:netty-transport-native-kqueue:4.2.7.Final:osx-aarch_64")
 
-    implementation("net.kyori:adventure-nbt:4.25.0")
+    implementation("net.kyori:adventure-text-serializer-gson:4.26.1")
+    implementation("net.kyori:adventure-text-minimessage:4.26.1")
+    implementation("net.kyori:adventure-nbt:4.26.1")
     implementation("com.google.code.gson:gson:2.13.2")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
@@ -48,9 +50,6 @@ buildConfig {
 
 tasks.shadowJar {
     from("LICENSE")
-
-    archiveClassifier.set("")
-    archiveVersion.set("")
 
     manifest {
         attributes(

@@ -17,7 +17,7 @@
 
 package ua.nanit.limbo.server;
 
-import ch.qos.logback.classic.Logger;
+import org.slf4j.Logger;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @UtilityClass
 public class Log {
 
-    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger("Limbo");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Limbo");
     private static int debugLevel = Level.INFO.getIndex();
 
     public static void info(@NonNull Object msg, @Nullable Object... args) {
@@ -61,27 +61,6 @@ public class Log {
 
     static void setLevel(int level) {
         debugLevel = level;
-
-        Logger logback = getRootLogger();
-
-        if (logback != null) {
-            logback.setLevel(convertLevel(level));
-        }
-    }
-
-    @Nullable
-    private static Logger getRootLogger() {
-        return (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-    }
-
-    private static ch.qos.logback.classic.Level convertLevel(int level) {
-        return switch (level) {
-            case 0 -> ch.qos.logback.classic.Level.ERROR;
-            case 1 -> ch.qos.logback.classic.Level.WARN;
-            case 2 -> ch.qos.logback.classic.Level.INFO;
-            case 3 -> ch.qos.logback.classic.Level.DEBUG;
-            default -> throw new IllegalStateException("Undefined log level: " + level);
-        };
     }
 
     @AllArgsConstructor
