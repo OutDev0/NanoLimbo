@@ -59,7 +59,7 @@ public final class LimboServer {
         packetHandler = new PacketHandler(this);
         dimensionRegistry = new DimensionRegistry(this);
         dimensionRegistry.load("minecraft:" + config.getDimensionType().toLowerCase(Locale.ROOT));
-        connections = new Connections();
+        connections = new Connections(config.isLogIPs());
 
         PacketSnapshots.initPackets(this);
 

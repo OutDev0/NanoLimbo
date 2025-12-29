@@ -59,6 +59,7 @@ public final class LimboConfig {
     private boolean useTitle;
     private boolean usePlayerList;
     private boolean useHeaderAndFooter;
+    private boolean logIPs;
 
     private String brandName;
     private String joinMessage;
@@ -111,6 +112,7 @@ public final class LimboConfig {
         usePlayerList = conf.node("playerList", "enable").getBoolean();
         playerListUsername = conf.node("playerList", "username").getString();
         useHeaderAndFooter = conf.node("headerAndFooter", "enable").getBoolean();
+        logIPs = conf.node("logIPs").getBoolean();
 
         if (useBrandName)
             brandName = conf.node("brandName", "content").getString();

@@ -29,6 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Connections {
 
     private final Map<UUID, ClientConnection> connections = new ConcurrentHashMap<>();
+    private final boolean logIPs;
+
+    public Connections(boolean logIPs) {
+        this.logIPs = logIPs;
+    }
 
     @NonNull
     public Collection<ClientConnection> getAllConnections() {
@@ -42,7 +47,7 @@ public final class Connections {
     public void addConnection(@NonNull ClientConnection connection) {
         this.connections.put(connection.getUuid(), connection);
         Log.info("Player %s connected (%s) [%s]", connection.getUsername(),
-                connection.getAddress(), connection.getClientVersion());
+            logIPs ? connection.getAddress() : "IP hidden", connection.getClientVersion());
     }
 
     public void removeConnection(@NonNull ClientConnection connection) {
