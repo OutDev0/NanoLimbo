@@ -159,8 +159,8 @@ public class PacketSnapshots {
 
         if (server.getConfig().isUseHeaderAndFooter()) {
             PacketPlayerListHeader header = new PacketPlayerListHeader();
-            header.setHeader(NbtMessageUtil.create(server.getConfig().getPlayerListHeader()));
-            header.setFooter(NbtMessageUtil.create(server.getConfig().getPlayerListFooter()));
+            header.setHeader(NbtMessageUtil.fromMinMessage(server.getConfig().getPlayerListHeader()));
+            header.setFooter(NbtMessageUtil.fromMinMessage(server.getConfig().getPlayerListFooter()));
             PACKET_HEADER_AND_FOOTER = PacketSnapshot.of(header);
         }
 
@@ -179,7 +179,7 @@ public class PacketSnapshots {
 
         if (server.getConfig().isUseJoinMessage()) {
             PacketChatMessage joinMessage = new PacketChatMessage();
-            joinMessage.setMessage(NbtMessageUtil.create(server.getConfig().getJoinMessage()));
+            joinMessage.setMessage(NbtMessageUtil.fromMinMessage(server.getConfig().getJoinMessage()));
             joinMessage.setPosition(PacketChatMessage.PositionLegacy.SYSTEM_MESSAGE);
             joinMessage.setSender(UUID.randomUUID());
             PACKET_JOIN_MESSAGE = PacketSnapshot.of(joinMessage);

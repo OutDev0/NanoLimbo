@@ -21,6 +21,9 @@ import com.google.gson.*;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.nbt.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import ua.nanit.limbo.protocol.NbtMessage;
 
 import java.util.ArrayList;
@@ -31,12 +34,32 @@ import java.util.Map;
 @UtilityClass
 public class NbtMessageUtil {
 
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+
     @NonNull
     public static NbtMessage create(@NonNull String json) {
         CompoundBinaryTag compoundBinaryTag = (CompoundBinaryTag) fromJson(JsonParser.parseString(json));
 
         return new NbtMessage(json, compoundBinaryTag);
     }
+
+    @NonNull
+    public static NbtMessage fromMinMessage(@NonNull String miniMessageString) {
+        Component component = MINI_MESSAGE.deserialize(miniMessageString);
+
+        String json = GsonComponentSerializer.gson().serialize(component);
+
+        JsonElement jsonElement = JsonParser.parseString(json);
+
+        if (!jsonElement.isJsonObject()) {
+            JsonObject wrapped = new JsonObject();
+            wrapped.add("text", jsonElement);
+            jsonElement = wrapped;
+        }
+
+        return create(jsonElement.toString());
+    }
+
 
     @NonNull
     public static BinaryTag fromJson(@NonNull JsonElement json) {

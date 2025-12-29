@@ -71,7 +71,7 @@ public class BossBar {
         public BossBar deserialize(Type type, ConfigurationNode node) throws SerializationException {
             BossBar bossBar = new BossBar();
 
-            bossBar.setText(NbtMessageUtil.create(Colors.of(node.node("text").getString(""))));
+            bossBar.setText(NbtMessageUtil.fromMinMessage(Colors.of(node.node("text").getString(""))));
             bossBar.setHealth(node.node("health").getFloat());
 
             if (bossBar.getHealth() < 0 || bossBar.getHealth() > 1)

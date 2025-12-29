@@ -40,8 +40,8 @@ public class Title {
         @Override
         public Title deserialize(Type type, ConfigurationNode node) {
             Title title = new Title();
-            title.setTitle(NbtMessageUtil.create(Colors.of(node.node("title").getString(""))));
-            title.setSubtitle(NbtMessageUtil.create(Colors.of(node.node("subtitle").getString(""))));
+            title.setTitle(NbtMessageUtil.fromMinMessage(Colors.of(node.node("title").getString(""))));
+            title.setSubtitle(NbtMessageUtil.fromMinMessage(Colors.of(node.node("subtitle").getString(""))));
             title.setFadeIn(node.node("fadeIn").getInt(10));
             title.setStay(node.node("stay").getInt(100));
             title.setFadeOut(node.node("fadeOut").getInt(10));
@@ -49,6 +49,7 @@ public class Title {
         }
 
         @Override
-        public void serialize(Type type, @Nullable Title obj, ConfigurationNode node) {}
+        public void serialize(Type type, @Nullable Title obj, ConfigurationNode node) {
+        }
     }
 }
