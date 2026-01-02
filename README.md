@@ -45,8 +45,8 @@ The server **doesn't** support snapshots.
 * `help` - Show help message
 * `conn` - Display number of connections
 * `mem` - Display memory usage stats
+* `version` - Display nanolimbo version
 * `stop` - Stop the server
-* `version` - Current nanolimbo version
 
 Note that the server also will be closed correctly if you just press `Ctrl+C`.
 
