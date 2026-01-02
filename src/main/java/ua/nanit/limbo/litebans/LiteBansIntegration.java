@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class LiteBansIntegration {
-
     @Getter
     private final Connection connection;
     private final LoadingCache<@NotNull UUID, Ban> cache = Caffeine.newBuilder()
@@ -40,12 +39,13 @@ public class LiteBansIntegration {
 
             if (rs.next()) {
                 String bannedByName = rs.getString("banned_by_name");
+                String reason = rs.getString("reason");
                 long start = rs.getLong("time");
                 long end = rs.getLong("until");
                 boolean isIpBan = rs.getBoolean("ipban");
                 boolean isActive = rs.getBoolean("active");
 
-                return new Ban(bannedByName, start, end, isIpBan, isActive);
+                return new Ban(bannedByName, reason, start, end, isIpBan, isActive);
             }
         } catch (SQLException error) {
             throw new RuntimeException(error);

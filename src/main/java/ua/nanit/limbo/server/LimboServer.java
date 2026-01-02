@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public final class LimboServer {
 
+    private static LimboServer INSTANCE;
+
     private LimboConfig config;
     private PacketHandler packetHandler;
     private Connections connections;
@@ -53,6 +55,8 @@ public final class LimboServer {
     private CommandManager commandManager;
 
     public void start() throws Exception {
+        INSTANCE = this;
+
         config = new LimboConfig(Paths.get("./"));
         config.load();
 
@@ -148,5 +152,9 @@ public final class LimboServer {
 
     public @NotNull Optional<LiteBansIntegration> getLiteBans() {
         return Optional.ofNullable(this.liteBans);
+    }
+
+    public static @NotNull LimboServer getInstance() {
+        return INSTANCE;
     }
 }

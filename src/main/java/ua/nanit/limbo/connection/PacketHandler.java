@@ -35,6 +35,7 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 @AllArgsConstructor
@@ -47,7 +48,7 @@ public class PacketHandler {
         conn.updateState(packet.getNextState());
 
         Log.debug("Pinged from %s [%s]", conn.getAddress(),
-                conn.getClientVersion().toString());
+            conn.getClientVersion().toString());
 
         if (this.server.getConfig().getInfoForwarding().isLegacy()) {
             String[] split = packet.getHost().split("\00");
@@ -75,13 +76,25 @@ public class PacketHandler {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginStart packet) {
         if (server.getConfig().getMaxPlayers() > 0 &&
-                server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
+            server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
             conn.disconnectLogin("Too many players connected");
             return;
         }
 
         if (!conn.getClientVersion().isSupported()) {
             conn.disconnectLogin("Unsupported client version");
+            return;
+        }
+
+        // LiteBans integration - check for bans
+        Optional<Object> kicked = server.getLiteBans()
+            .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()))
+            .map((ban) -> {
+                conn.disconnectLogin(ban.constructKickMessage());
+                return true;
+            });
+
+        if (kicked.isPresent()) {
             return;
         }
 
@@ -108,7 +121,7 @@ public class PacketHandler {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginPluginResponse packet) {
         if (server.getConfig().getInfoForwarding().isModern()
-                && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
+            && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
 
             if (!packet.isSuccessful() || packet.getData() == null) {
                 conn.disconnectLogin("You need to connect with Velocity");

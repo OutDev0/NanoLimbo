@@ -86,13 +86,14 @@ public final class LimboConfig {
 
     private boolean liteBansIntegration;
     private String liteBansConnectionString;
+    private String liteBansKickMessageFormat;
 
     public void load() throws Exception {
         ConfigurationOptions options = ConfigurationOptions.defaults().serializers(getSerializers());
         YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
-                .source(this::getReader)
-                .defaultOptions(options)
-                .build();
+            .source(this::getReader)
+            .defaultOptions(options)
+            .build();
 
         ConfigurationNode conf = loader.load();
 
@@ -150,6 +151,18 @@ public final class LimboConfig {
 
         liteBansIntegration = conf.node("liteBans", "enabled").getBoolean(false);
         liteBansConnectionString = conf.node("liteBans", "connectionString").getString();
+        liteBansKickMessageFormat = conf.node("liteBans", "kickMessageFormat").getString("""
+              \s
+              \s
+              <#FB4BAE><bold>PvPHub</bold> <#bbb1c4>-</#bbb1c4> <#FF331C>Banned
+              \s
+              \s
+              <#FB4BAE><bold>Reason</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$reason</#FFE1F2>
+              <#FB4BAE><bold>Expires In</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$duration</#FFE1F2>
+              \s
+              \s
+              <#FFE1F2>Appeal on our discord <#bbb1c4>-</#bbb1c4> <#00E676>discord.gg/Fa7YXrB6cr
+            """.trim());
     }
 
     @NonNull
@@ -173,11 +186,11 @@ public final class LimboConfig {
     @NonNull
     private TypeSerializerCollection getSerializers() {
         return TypeSerializerCollection.builder()
-                .register(SocketAddress.class, new SocketAddressSerializer())
-                .register(InfoForwarding.class, new InfoForwarding.Serializer())
-                .register(PingData.class, new PingData.Serializer())
-                .register(BossBar.class, new BossBar.Serializer())
-                .register(Title.class, new Title.Serializer())
-                .build();
+            .register(SocketAddress.class, new SocketAddressSerializer())
+            .register(InfoForwarding.class, new InfoForwarding.Serializer())
+            .register(PingData.class, new PingData.Serializer())
+            .register(BossBar.class, new BossBar.Serializer())
+            .register(Title.class, new Title.Serializer())
+            .build();
     }
 }

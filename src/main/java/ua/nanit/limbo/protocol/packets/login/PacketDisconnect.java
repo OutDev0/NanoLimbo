@@ -21,20 +21,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
+import ua.nanit.limbo.util.NbtMessageUtil;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PacketDisconnect implements PacketOut {
 
-    private String reason;
+    private Component componentReason;
+    private String legacyReason;
 
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
-        msg.writeString(String.format("{\"text\": \"%s\"}", reason));
+        if (legacyReason != null) {
+            msg.writeString(String.format("{\"text\": \"%s\"}", legacyReason));
+        } else if (componentReason != null) {
+            msg.writeNbtMessage(NbtMessageUtil.create(componentReason), version);
+        }
     }
 
     @Override
