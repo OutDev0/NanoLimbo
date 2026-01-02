@@ -2,8 +2,8 @@ package ua.nanit.limbo.litebans;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import ua.nanit.limbo.NanoLimbo;
 import ua.nanit.limbo.server.LimboServer;
+import ua.nanit.limbo.util.DurationFormatter;
 import ua.nanit.limbo.util.NbtMessageUtil;
 
 import java.time.Duration;
@@ -34,7 +34,7 @@ public record Ban(
     }
 
     public boolean isExpired() {
-        return Instant.now().isAfter(getExpiry());
+        return !isActive || Instant.now().isAfter(getExpiry());
     }
 
     public ZonedDateTime getEndDateTime() {
@@ -44,7 +44,7 @@ public record Ban(
     public @NotNull Component constructKickMessage() {
         String durationString = end == 0
             ? "Never (Permanent)"
-            : getDuration()
+            : DurationFormatter.formatDuration(getDuration())
             + " ("
             + DATE_TIME_FORMATTER.format(getEndDateTime())
             + ")";
