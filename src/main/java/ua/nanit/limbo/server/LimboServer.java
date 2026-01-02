@@ -88,6 +88,7 @@ public final class LimboServer {
             Log.info("Connecting to LiteBans Database...");
             try {
                 this.liteBans = new LiteBansIntegration(config.getLiteBansConnectionString());
+                Log.info("Success! Connected to LiteBans Database.");
             } catch (Exception error) {
                 Log.error("Failed to connect to LiteBans", error);
             }

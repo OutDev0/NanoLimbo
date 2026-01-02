@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
@@ -40,7 +41,8 @@ public class PacketDisconnect implements PacketOut {
         if (legacyReason != null) {
             msg.writeString(String.format("{\"text\": \"%s\"}", legacyReason));
         } else if (componentReason != null) {
-            msg.writeNbtMessage(NbtMessageUtil.create(componentReason), version);
+            msg.writeString(GsonComponentSerializer.gson().serialize(componentReason));
+//            msg.writeNbtMessage(NbtMessageUtil.create(componentReason), version);
         }
     }
 

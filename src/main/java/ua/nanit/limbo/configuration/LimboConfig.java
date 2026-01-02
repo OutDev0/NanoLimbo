@@ -158,10 +158,12 @@ public final class LimboConfig {
               \s
               \s
               <#FB4BAE><bold>Reason</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$reason</#FFE1F2>
+            
               <#FB4BAE><bold>Expires In</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$duration</#FFE1F2>
+            
               \s
               \s
-              <#FFE1F2>Appeal on our discord <#bbb1c4>-</#bbb1c4> <#00E676>discord.gg/Fa7YXrB6cr
+              <#FFE1F2>Appeal on our discord <#bbb1c4>-</#bbb1c4> <#00E676>discord.gg/pvphub
             """.trim());
     }
 

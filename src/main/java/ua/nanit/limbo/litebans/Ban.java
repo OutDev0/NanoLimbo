@@ -34,7 +34,11 @@ public record Ban(
     }
 
     public boolean isExpired() {
-        return !isActive || Instant.now().isAfter(getExpiry());
+        if (end == 0) {
+            return !isActive;
+        }
+
+        return !isActive && Instant.now().isAfter(getExpiry());
     }
 
     public ZonedDateTime getEndDateTime() {

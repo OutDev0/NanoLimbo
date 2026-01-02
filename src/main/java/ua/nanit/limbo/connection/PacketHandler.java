@@ -87,7 +87,9 @@ public record PacketHandler(LimboServer server) {
             .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()))
             .map((ban) -> ban.isExpired() ? null : ban) // exclude expired bans
             .map((ban) -> {
+                Log.info("Disconnected %s (Banned: %s)", packet.getUsername(), ban.reason());
                 conn.disconnectLogin(ban.constructKickMessage());
+//                conn.disconnectLogin();
                 return true;
             });
 
