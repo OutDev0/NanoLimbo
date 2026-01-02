@@ -25,6 +25,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.connection.pipeline.PacketDecoder;
 import ua.nanit.limbo.connection.pipeline.PacketEncoder;
@@ -79,12 +80,12 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         this.gameProfile = new GameProfile();
     }
 
-    @NonNull
+    @Nullable
     public UUID getUuid() {
         return gameProfile.getUuid();
     }
 
-    @NonNull
+    @Nullable
     public String getUsername() {
         return gameProfile.getUsername();
     }
@@ -119,7 +120,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
     public void fireLoginSuccess() {
         if (server.getConfig().getInfoForwarding().isModern() && velocityLoginMessageId == -1) {
-            disconnectLogin("You need to connect with Velocity");
+            disconnect("You need to connect with Velocity");
             return;
         }
 
@@ -240,12 +241,23 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public void disconnectLogin(@NonNull String reason) {
-        if (isConnected() && state == State.LOGIN) {
-            PacketDisconnect disconnect = new PacketDisconnect();
-            disconnect.setReason(reason);
-            sendPacketAndClose(disconnect);
+    public void disconnect(@NonNull String reason) {
+        if (!isConnected()) {
+            return;
         }
+
+        String name = getUsername();
+        Log.debug("%s kicked: %s", (name != null ? name : this.address), reason);
+
+        if (!(this.state == State.LOGIN
+                || this.state == State.CONFIGURATION)) {
+            this.channel.close();
+            return;
+        }
+
+        PacketDisconnect disconnect = new PacketDisconnect();
+        disconnect.setReason(reason);
+        sendPacketAndClose(disconnect);
     }
 
     public void writeTitle() {

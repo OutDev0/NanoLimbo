@@ -31,6 +31,7 @@ import ua.nanit.limbo.protocol.packets.login.PacketLoginStart;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusPing;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusRequest;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusResponse;
+import ua.nanit.limbo.protocol.registry.State;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
@@ -44,24 +45,37 @@ public class PacketHandler {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketHandshake packet) {
         conn.updateVersion(packet.getVersion());
-        conn.updateState(packet.getNextState());
 
-        Log.debug("Pinged from %s [%s]", conn.getAddress(),
-                conn.getClientVersion().toString());
+        switch (packet.getIntent()) {
+            case STATUS -> {
+                conn.updateState(State.STATUS);
 
-        if (this.server.getConfig().getInfoForwarding().isLegacy()) {
-            String[] split = packet.getHost().split("\00");
-
-            if (split.length == 3 || split.length == 4) {
-                conn.setAddress(split[1]);
-                conn.getGameProfile().setUuid(UuidUtil.fromString(split[2]));
-            } else {
-                conn.disconnectLogin("You've enabled player info forwarding. You need to connect with proxy");
+                Log.debug("Pinged from %s [%s]", conn.getAddress(), conn.getClientVersion().toString());
             }
-        } else if (this.server.getConfig().getInfoForwarding().isBungeeGuard()) {
-            if (!conn.checkBungeeGuardHandshake(packet.getHost())) {
-                conn.disconnectLogin("Invalid BungeeGuard token or handshake format");
+            case LOGIN, TRANSFER -> {
+                conn.updateState(State.LOGIN);
+
+                if (!conn.getClientVersion().isSupported()) {
+                    conn.disconnect("Unsupported client version");
+                    return;
+                }
+
+                if (this.server.getConfig().getInfoForwarding().isLegacy()) {
+                    String[] split = packet.getHost().split("\00");
+
+                    if (split.length == 3 || split.length == 4) {
+                        conn.setAddress(split[1]);
+                        conn.getGameProfile().setUuid(UuidUtil.fromString(split[2]));
+                    } else {
+                        conn.disconnect("You've enabled player info forwarding. You need to connect with proxy");
+                    }
+                } else if (this.server.getConfig().getInfoForwarding().isBungeeGuard()) {
+                    if (!conn.checkBungeeGuardHandshake(packet.getHost())) {
+                        conn.disconnect("Invalid BungeeGuard token or handshake format");
+                    }
+                }
             }
+            default -> conn.disconnect("Invalid handshake intent!");
         }
     }
 
@@ -76,12 +90,7 @@ public class PacketHandler {
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginStart packet) {
         if (server.getConfig().getMaxPlayers() > 0 &&
                 server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
-            conn.disconnectLogin("Too many players connected");
-            return;
-        }
-
-        if (!conn.getClientVersion().isSupported()) {
-            conn.disconnectLogin("Unsupported client version");
+            conn.disconnect("Too many players connected");
             return;
         }
 
@@ -111,12 +120,12 @@ public class PacketHandler {
                 && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
 
             if (!packet.isSuccessful() || packet.getData() == null) {
-                conn.disconnectLogin("You need to connect with Velocity");
+                conn.disconnect("You need to connect with Velocity");
                 return;
             }
 
             if (!conn.checkVelocityKeyIntegrity(packet.getData())) {
-                conn.disconnectLogin("Can't verify forwarded player info");
+                conn.disconnect("Can't verify forwarded player info");
                 return;
             }
 

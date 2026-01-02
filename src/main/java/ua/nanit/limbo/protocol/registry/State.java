@@ -20,7 +20,6 @@ package ua.nanit.limbo.protocol.registry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import ua.nanit.limbo.protocol.Packet;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
@@ -41,14 +40,14 @@ import static ua.nanit.limbo.protocol.registry.Version.*;
 @AllArgsConstructor
 public enum State {
 
-    HANDSHAKING(0) {
+    HANDSHAKING {
         {
             serverBound.register(PacketHandshake::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
         }
     },
-    STATUS(1) {
+    STATUS {
         {
             serverBound.register(PacketStatusRequest::new,
                     map(0x00, Version.getMin(), Version.getMax())
@@ -64,7 +63,7 @@ public enum State {
             );
         }
     },
-    LOGIN(2) {
+    LOGIN {
         {
             serverBound.register(PacketLoginStart::new,
                     map(0x00, Version.getMin(), Version.getMax())
@@ -87,7 +86,7 @@ public enum State {
             );
         }
     },
-    CONFIGURATION(3) {
+    CONFIGURATION {
         {
             clientBound.register(
                     PacketPluginMessage::new,
@@ -144,7 +143,7 @@ public enum State {
             );
         }
     },
-    PLAY(4) {
+    PLAY {
         {
             serverBound.register(PacketKeepAlive::new,
                     map(0x00, V1_7_2, V1_8),
@@ -416,22 +415,8 @@ public enum State {
         }
     };
 
-    private static final Map<Integer, State> STATE_BY_ID = new HashMap<>();
-
-    static {
-        for (State registry : values()) {
-            STATE_BY_ID.put(registry.stateId, registry);
-        }
-    }
-
-    private final int stateId;
     public final ProtocolMappings serverBound = new ProtocolMappings();
     public final ProtocolMappings clientBound = new ProtocolMappings();
-
-    @Nullable
-    public static State getById(int stateId) {
-        return STATE_BY_ID.get(stateId);
-    }
 
     public static class ProtocolMappings {
         private final Map<Version, PacketRegistry> registry = new EnumMap<>(Version.class);
