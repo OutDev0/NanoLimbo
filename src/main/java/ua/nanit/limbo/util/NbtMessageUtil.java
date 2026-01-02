@@ -23,7 +23,9 @@ import lombok.experimental.UtilityClass;
 import net.kyori.adventure.nbt.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.protocol.NbtMessage;
 
 import java.util.ArrayList;
@@ -34,7 +36,9 @@ import java.util.Map;
 @UtilityClass
 public class NbtMessageUtil {
 
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
+        .tags(TagResolver.standard())
+        .build();
 
     @NonNull
     public static NbtMessage create(@NonNull String json) {
@@ -44,9 +48,7 @@ public class NbtMessageUtil {
     }
 
     @NonNull
-    public static NbtMessage fromMinMessage(@NonNull String miniMessageString) {
-        Component component = MINI_MESSAGE.deserialize(miniMessageString);
-
+    public static NbtMessage create(@NotNull Component component) {
         String json = GsonComponentSerializer.gson().serialize(component);
 
         JsonElement jsonElement = JsonParser.parseString(json);
@@ -60,6 +62,12 @@ public class NbtMessageUtil {
         return create(jsonElement.toString());
     }
 
+    @NonNull
+    public static NbtMessage fromMinMessage(@NonNull String miniMessageString) {
+        Component component = MINI_MESSAGE.deserialize(miniMessageString);
+
+        return create(component);
+    }
 
     @NonNull
     public static BinaryTag fromJson(@NonNull JsonElement json) {

@@ -18,7 +18,6 @@
 package ua.nanit.limbo.connection;
 
 import io.netty.buffer.Unpooled;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import ua.nanit.limbo.LimboConstants;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
@@ -35,19 +34,17 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-@AllArgsConstructor
-public class PacketHandler {
-
-    private final LimboServer server;
+public record PacketHandler(LimboServer server) {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketHandshake packet) {
         conn.updateVersion(packet.getVersion());
         conn.updateState(packet.getNextState());
 
         Log.debug("Pinged from %s [%s]", conn.getAddress(),
-                conn.getClientVersion().toString());
+            conn.getClientVersion().toString());
 
         if (this.server.getConfig().getInfoForwarding().isLegacy()) {
             String[] split = packet.getHost().split("\00");
@@ -75,13 +72,28 @@ public class PacketHandler {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginStart packet) {
         if (server.getConfig().getMaxPlayers() > 0 &&
-                server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
+            server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
             conn.disconnectLogin("Too many players connected");
             return;
         }
 
         if (!conn.getClientVersion().isSupported()) {
             conn.disconnectLogin("Unsupported client version");
+            return;
+        }
+
+        // LiteBans integration - check for bans
+        Optional<Object> kicked = server.getLiteBans()
+            .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()))
+            .map((ban) -> ban.isExpired() ? null : ban) // exclude expired bans
+            .map((ban) -> {
+                Log.info("Disconnected %s (Banned: %s)", packet.getUsername(), ban.reason());
+                conn.disconnectLogin(ban.constructKickMessage());
+//                conn.disconnectLogin();
+                return true;
+            });
+
+        if (kicked.isPresent()) {
             return;
         }
 
@@ -108,7 +120,7 @@ public class PacketHandler {
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginPluginResponse packet) {
         if (server.getConfig().getInfoForwarding().isModern()
-                && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
+            && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
 
             if (!packet.isSuccessful() || packet.getData() == null) {
                 conn.disconnectLogin("You need to connect with Velocity");

@@ -25,6 +25,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.connection.pipeline.PacketDecoder;
 import ua.nanit.limbo.connection.pipeline.PacketEncoder;
@@ -243,7 +244,15 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     public void disconnectLogin(@NonNull String reason) {
         if (isConnected() && state == State.LOGIN) {
             PacketDisconnect disconnect = new PacketDisconnect();
-            disconnect.setReason(reason);
+            disconnect.setLegacyReason(reason);
+            sendPacketAndClose(disconnect);
+        }
+    }
+
+    public void disconnectLogin(@NonNull Component reason) {
+        if (isConnected() && state == State.LOGIN) {
+            PacketDisconnect disconnect = new PacketDisconnect();
+            disconnect.setComponentReason(reason);
             sendPacketAndClose(disconnect);
         }
     }
