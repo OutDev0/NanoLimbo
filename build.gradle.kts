@@ -27,6 +27,7 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.26.1")
     implementation("net.kyori:adventure-nbt:4.26.1")
     implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")

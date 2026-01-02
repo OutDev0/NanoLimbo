@@ -21,15 +21,19 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ua.nanit.limbo.configuration.LimboConfig;
 import ua.nanit.limbo.connection.ClientChannelInitializer;
 import ua.nanit.limbo.connection.ClientConnection;
 import ua.nanit.limbo.connection.PacketHandler;
 import ua.nanit.limbo.connection.PacketSnapshots;
+import ua.nanit.limbo.litebans.LiteBansIntegration;
 import ua.nanit.limbo.world.DimensionRegistry;
 
 import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +45,7 @@ public final class LimboServer {
     private Connections connections;
     private DimensionRegistry dimensionRegistry;
     private ScheduledFuture<?> keepAliveTask;
+    private @Nullable LiteBansIntegration liteBans;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -74,6 +79,15 @@ public final class LimboServer {
         commandManager = new CommandManager();
         commandManager.registerAll(this);
         commandManager.start();
+
+        if (config.isLiteBansIntegration()) {
+            Log.info("Connecting to LiteBans Database...");
+            try {
+                this.liteBans = new LiteBansIntegration(config.getLiteBansConnectionString());
+            } catch (Exception error) {
+                Log.error("Failed to connect to LiteBans", error);
+            }
+        }
 
         System.gc();
     }
@@ -130,5 +144,9 @@ public final class LimboServer {
         }
 
         Log.info("Server stopped, Goodbye!");
+    }
+
+    public @NotNull Optional<LiteBansIntegration> getLiteBans() {
+        return Optional.ofNullable(this.liteBans);
     }
 }

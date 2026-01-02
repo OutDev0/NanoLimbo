@@ -84,6 +84,9 @@ public final class LimboConfig {
     private double maxPacketRate;
     private double maxPacketBytesRate;
 
+    private boolean liteBansIntegration;
+    private String liteBansConnectionString;
+
     public void load() throws Exception {
         ConfigurationOptions options = ConfigurationOptions.defaults().serializers(getSerializers());
         YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
@@ -144,6 +147,9 @@ public final class LimboConfig {
         interval = conf.node("traffic", "interval").getDouble(-1.0);
         maxPacketRate = conf.node("traffic", "maxPacketRate").getDouble(-1.0);
         maxPacketBytesRate = conf.node("traffic", "maxPacketBytesRate").getDouble(-1.0);
+
+        liteBansIntegration = conf.node("liteBans", "enabled").getBoolean(false);
+        liteBansConnectionString = conf.node("liteBans", "connectionString").getString();
     }
 
     @NonNull
