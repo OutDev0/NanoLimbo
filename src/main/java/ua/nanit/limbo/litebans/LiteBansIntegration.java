@@ -28,14 +28,15 @@ public class LiteBansIntegration {
 
     public @Nullable Ban findCurrentBan(UUID uniqueId) {
         String sql = """
-            SELECT ban AS type, b.*
-            FROM litebans_bans b
+            SELECT *
+            FROM litebans_bans
             WHERE uuid = ? AND active = 1
             ORDER BY time DESC
             LIMIT 1
             """;
-        try (PreparedStatement statement = this.connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (PreparedStatement statement = this.connection.prepareStatement(sql)) {
+            statement.setString(1, uniqueId.toString());
+            ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
                 String bannedByName = rs.getString("banned_by_name");

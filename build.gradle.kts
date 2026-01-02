@@ -28,13 +28,11 @@ dependencies {
     implementation("net.kyori:adventure-nbt:4.26.1")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+//    implementation("com.mysql:mysql-connector-j:9.5.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.7")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
-}
-
-tasks.compileJava {
-    options.encoding = "UTF-8"
 }
 
 java {
@@ -49,18 +47,28 @@ buildConfig {
     buildConfigField("LIMBO_VERSION", provider { "${project.version}" })
 }
 
-tasks.shadowJar {
-    from("LICENSE")
-
-    manifest {
-        attributes(
-            mapOf(
-                "Main-Class" to "ua.nanit.limbo.NanoLimbo"
-            )
-        )
+tasks {
+    compileJava {
+        options.encoding = "UTF-8"
     }
 
-    minimize {
-        exclude(dependency("ch.qos.logback:logback-classic:.*:.*"))
+    build {
+        dependsOn(shadowJar)
+    }
+
+    shadowJar {
+        from("LICENSE")
+
+        manifest {
+            attributes(
+                mapOf(
+                    "Main-Class" to "ua.nanit.limbo.NanoLimbo"
+                )
+            )
+        }
+
+//        minimize {
+//            exclude(dependency("ch.qos.logback:logback-classic:.*:.*"))
+//        }
     }
 }
