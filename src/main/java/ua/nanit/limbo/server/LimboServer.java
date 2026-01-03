@@ -53,7 +53,9 @@ public final class LimboServer {
         Log.setLevel(config.getDebugLevel());
         Log.info("Starting server...");
 
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
+        if (System.getProperty("io.netty.leakDetectionLevel") == null && System.getProperty("io.netty.leakDetection.level") == null) {
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
+        }
 
         packetHandler = new PacketHandler(this);
         dimensionRegistry = new DimensionRegistry(this);
