@@ -29,7 +29,6 @@ import ua.nanit.limbo.connection.PacketSnapshots;
 import ua.nanit.limbo.world.DimensionRegistry;
 
 import java.nio.file.Paths;
-import java.util.Locale;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +57,7 @@ public final class LimboServer {
 
         packetHandler = new PacketHandler(this);
         dimensionRegistry = new DimensionRegistry(this);
-        dimensionRegistry.load("minecraft:" + config.getDimensionType().toLowerCase(Locale.ROOT));
+        dimensionRegistry.load(config.getDimensionType());
         connections = new Connections();
 
         PacketSnapshots.initPackets(this);
@@ -79,15 +78,7 @@ public final class LimboServer {
     }
 
     private void startBootstrap() {
-        String transportTypeName = config.getTransportType().toUpperCase(Locale.ROOT);
-        TransportType transportType;
-        try {
-            transportType = TransportType.valueOf(transportTypeName);
-        } catch (Exception e) {
-            Log.debug("Unknown transport type '" + transportTypeName + "'. Using NIO.");
-            transportType = TransportType.NIO;
-        }
-
+        TransportType transportType = config.getTransportType();
         if (!transportType.isAvailable()) {
             Log.debug("Transport type " + transportType.name() + " is not available! Using NIO.");
             transportType = TransportType.NIO;

@@ -25,6 +25,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
+import ua.nanit.limbo.server.data.NamespacedKey;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +76,7 @@ public final class DimensionRegistry {
     private CompoundBinaryTag tags_1_21_9;
     private CompoundBinaryTag tags_1_21_11;
 
-    public void load(@NonNull String def) throws IOException {
+    public void load(@NonNull NamespacedKey def) throws IOException {
         codec_1_16 = readCompoundBinaryTag("/dimension/codec_1_16.nbt");
         codec_1_16_2 = readCompoundBinaryTag("/dimension/codec_1_16_2.nbt");
         codec_1_17 = readCompoundBinaryTag("/dimension/codec_1_17.nbt");
@@ -118,20 +119,20 @@ public final class DimensionRegistry {
     }
 
     @NonNull
-    private Dimension getLegacyDimension(@NonNull String def) {
-        return switch (def) {
-            case "minecraft:overworld" -> new Dimension(0, def, null);
-            case "minecraft:the_nether" -> new Dimension(-1, def, null);
-            case "minecraft:the_end" -> new Dimension(1, def, null);
+    private Dimension getLegacyDimension(@NonNull NamespacedKey def) {
+        return switch (def.getKey()) {
+            case "overworld" -> new Dimension(0, def, null);
+            case "the_nether" -> new Dimension(-1, def, null);
+            case "the_end" -> new Dimension(1, def, null);
             default -> {
                 Log.warning("Undefined dimension type: '%s'. Using 'minecraft:overworld' as default", def);
-                yield new Dimension(0, "minecraft:overworld", null);
+                yield new Dimension(0, NamespacedKey.minecraft("overworld"), null);
             }
         };
     }
 
     @NonNull
-    private Dimension getModernDimension(@NonNull String def, @NonNull CompoundBinaryTag tag) {
+    private Dimension getModernDimension(@NonNull NamespacedKey def, @NonNull CompoundBinaryTag tag) {
         ListBinaryTag dimensions = tag.getCompound("minecraft:dimension_type").getList("value");
 
         for (int i = 0; i < dimensions.size(); i++) {
@@ -140,14 +141,14 @@ public final class DimensionRegistry {
             String name = dimension.getString("name");
             CompoundBinaryTag world = (CompoundBinaryTag) dimension.get("element");
 
-            if (name.startsWith(def)) {
-                return new Dimension(i, name, world);
+            if (name.startsWith(def.toString())) {
+                return new Dimension(i, def, world);
             }
         }
 
         CompoundBinaryTag overWorld = (CompoundBinaryTag) ((CompoundBinaryTag) dimensions.get(0)).get("element");
         Log.warning("Undefined dimension type: '%s'. Using 'minecraft:overworld' as default", def);
-        return new Dimension(0, "minecraft:overworld", overWorld);
+        return new Dimension(0, NamespacedKey.minecraft("overworld"), overWorld);
     }
 
     @NonNull

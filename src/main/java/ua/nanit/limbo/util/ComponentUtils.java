@@ -148,8 +148,8 @@ public class ComponentUtils {
     }
 
     @NonNull
-    public static String parseToLegacyString(@NonNull String text) {
-        return toLegacyString(parse(text));
+    public static String toMiniMessageString(@NonNull Component component) {
+        return MINI_MESSAGE_SERIALIZER.serialize(component);
     }
 
     @NonNull

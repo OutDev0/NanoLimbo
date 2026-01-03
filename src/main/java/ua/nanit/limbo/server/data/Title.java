@@ -19,12 +19,6 @@ package ua.nanit.limbo.server.data;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.serialize.TypeSerializer;
-import ua.nanit.limbo.util.ComponentUtils;
-
-import java.lang.reflect.Type;
 
 @Data
 public class Title {
@@ -35,19 +29,4 @@ public class Title {
     private int stay;
     private int fadeOut;
 
-    public static class Serializer implements TypeSerializer<Title> {
-        @Override
-        public Title deserialize(Type type, ConfigurationNode node) {
-            Title title = new Title();
-            title.setTitle(ComponentUtils.parse(node.node("title").getString("")));
-            title.setSubtitle(ComponentUtils.parse(node.node("subtitle").getString("")));
-            title.setFadeIn(node.node("fadeIn").getInt(10));
-            title.setStay(node.node("stay").getInt(100));
-            title.setFadeOut(node.node("fadeOut").getInt(10));
-            return title;
-        }
-
-        @Override
-        public void serialize(Type type, @Nullable Title obj, ConfigurationNode node) {}
-    }
 }

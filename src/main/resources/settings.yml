@@ -20,8 +20,8 @@ ping:
   # https://wiki.vg/Protocol_version_numbers
   protocol: -1
 
-# Available dimensions: OVERWORLD, NETHER, THE_END
-dimension: THE_END
+# Available dimensions: overworld, the_nether, the_end
+dimension: the_end
 
 # Whether to display the player in the player list
 # For 1.16.5 clients, the player list will be sent even if disabled, to avoid crash

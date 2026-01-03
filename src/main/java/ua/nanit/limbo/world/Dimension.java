@@ -20,6 +20,7 @@ package ua.nanit.limbo.world;
 import lombok.NonNull;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import ua.nanit.limbo.server.data.NamespacedKey;
 
-public record Dimension(int id, @NonNull String name, @Nullable CompoundBinaryTag data) {
+public record Dimension(int id, @NonNull NamespacedKey key, @Nullable CompoundBinaryTag data) {
 }

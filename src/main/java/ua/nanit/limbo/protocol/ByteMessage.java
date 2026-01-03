@@ -30,6 +30,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import ua.nanit.limbo.connection.PlayerPublicKey;
 import ua.nanit.limbo.protocol.registry.Version;
+import ua.nanit.limbo.server.data.NamespacedKey;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.NbtUtils;
 
@@ -231,6 +232,17 @@ public class ByteMessage extends ByteBuf {
             return BinaryTagIO.reader().read((InputStream) stream);
         } catch (IOException thrown) {
             throw new DecoderException("Cannot read NBT CompoundTag");
+        }
+    }
+
+    public void writeNamespacedKey(@NonNull NamespacedKey namespacedKey) {
+        writeString(namespacedKey.toString());
+    }
+
+    public void writeNamespacedKeyArray(@NonNull NamespacedKey[] keys) {
+        writeVarInt(keys.length);
+        for (NamespacedKey namespacedKey : keys) {
+            writeNamespacedKey(namespacedKey);
         }
     }
 
