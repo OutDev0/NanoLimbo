@@ -25,6 +25,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.connection.pipeline.PacketDecoder;
@@ -32,12 +34,14 @@ import ua.nanit.limbo.connection.pipeline.PacketEncoder;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.Packet;
 import ua.nanit.limbo.protocol.PacketSnapshot;
-import ua.nanit.limbo.protocol.packets.login.PacketDisconnect;
+import ua.nanit.limbo.protocol.packets.login.PacketLoginDisconnect;
+import ua.nanit.limbo.protocol.packets.play.PacketDisconnect;
 import ua.nanit.limbo.protocol.packets.play.PacketKeepAlive;
 import ua.nanit.limbo.protocol.registry.State;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
+import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UuidUtil;
 
 import javax.crypto.Mac;
@@ -120,7 +124,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
     public void fireLoginSuccess() {
         if (server.getConfig().getInfoForwarding().isModern() && velocityLoginMessageId == -1) {
-            disconnect("You need to connect with Velocity");
+            disconnect(Component.text("You need to connect with Velocity", NamedTextColor.RED));
             return;
         }
 
@@ -241,23 +245,29 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public void disconnect(@NonNull String reason) {
+    public void disconnect(@NonNull Component reason) {
         if (!isConnected()) {
             return;
         }
 
         String name = getUsername();
-        Log.debug("%s kicked: %s", (name != null ? name : this.address), reason);
+        Log.debug("%s kicked: %s", (name != null ? name : this.address), ComponentUtils.toPlainString(reason));
 
-        if (!(this.state == State.LOGIN
-                || this.state == State.CONFIGURATION)) {
+        if (!(this.state == State.LOGIN || this.state == State.CONFIGURATION || this.state == State.PLAY)) {
             this.channel.close();
             return;
         }
 
-        PacketDisconnect disconnect = new PacketDisconnect();
-        disconnect.setReason(reason);
-        sendPacketAndClose(disconnect);
+        if (this.state == State.LOGIN) {
+            PacketLoginDisconnect packetLoginDisconnect = new PacketLoginDisconnect();
+            packetLoginDisconnect.setReason(reason);
+            sendPacketAndClose(packetLoginDisconnect);
+            return;
+        }
+
+        PacketDisconnect packetDisconnect = new PacketDisconnect();
+        packetDisconnect.setReason(reason);
+        sendPacketAndClose(packetDisconnect);
     }
 
     public void writeTitle() {

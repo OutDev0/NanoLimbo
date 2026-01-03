@@ -17,20 +17,23 @@
 
 package ua.nanit.limbo.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.TypeAdapter;
 import lombok.experimental.UtilityClass;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 @UtilityClass
-public class Colors {
+public class JsonUtils {
 
-    private static final char CHAR_FROM = '&';
-    private static final char CHAR_TO = '§';
+    private static final TypeAdapter<JsonElement> STRICT_ADAPTER = new Gson().getAdapter(JsonElement.class);
 
-    @Nullable
-    public static String of(@Nullable String text) {
-        if (text == null) {
-            return null;
+    public static boolean isValidJson(String json) {
+        try {
+            STRICT_ADAPTER.fromJson(json);
+        } catch (Exception e) {
+            return false;
         }
-        return text.replace(CHAR_FROM, CHAR_TO);
+        return true;
     }
+
 }

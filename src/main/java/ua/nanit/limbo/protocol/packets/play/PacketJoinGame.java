@@ -52,6 +52,7 @@ public class PacketJoinGame implements PacketOut {
         this.worldNames = worldNames;
     }
 
+    // TODO Simplify
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
         msg.writeInt(entityId);

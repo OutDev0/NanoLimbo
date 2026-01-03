@@ -15,40 +15,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ua.nanit.limbo.protocol.packets.play;
+package ua.nanit.limbo.protocol.packets.login;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
-import ua.nanit.limbo.server.data.BossBar;
+import ua.nanit.limbo.util.ComponentUtils;
 
-import java.util.UUID;
-
-/**
- * Packet for 1.9+
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PacketBossBar implements PacketOut {
+public class PacketLoginDisconnect implements PacketOut {
 
-    private UUID uuid;
-    private BossBar bossBar;
-    private int flags;
+    private Component reason;
 
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
-        msg.writeUuid(this.uuid);
-        msg.writeVarInt(0); // Create bossbar
-        msg.writeComponent(this.bossBar.getText(), version);
-        msg.writeFloat(this.bossBar.getHealth());
-        msg.writeVarInt(this.bossBar.getColor().getIndex());
-        msg.writeVarInt(this.bossBar.getDivision().getIndex());
-        msg.writeByte(this.flags);
+        GsonComponentSerializer gsonComponentSerializer = ComponentUtils.getJsonChatSerializer(version);
+        msg.writeString(gsonComponentSerializer.serialize(this.reason));
     }
 
     @Override

@@ -15,12 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package ua.nanit.limbo.protocol.packets.login;
+package ua.nanit.limbo.protocol.packets.play;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
@@ -30,11 +31,11 @@ import ua.nanit.limbo.protocol.registry.Version;
 @NoArgsConstructor
 public class PacketDisconnect implements PacketOut {
 
-    private String reason;
+    private Component reason;
 
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
-        msg.writeString(String.format("{\"text\": \"%s\"}", reason));
+        msg.writeComponent(this.reason, version);
     }
 
     @Override

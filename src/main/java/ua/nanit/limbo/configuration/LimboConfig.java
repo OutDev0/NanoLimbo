@@ -28,7 +28,6 @@ import ua.nanit.limbo.server.data.BossBar;
 import ua.nanit.limbo.server.data.InfoForwarding;
 import ua.nanit.limbo.server.data.PingData;
 import ua.nanit.limbo.server.data.Title;
-import ua.nanit.limbo.util.Colors;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -116,7 +115,7 @@ public final class LimboConfig {
             brandName = conf.node("brandName", "content").getString();
 
         if (useJoinMessage)
-            joinMessage = Colors.of(conf.node("joinMessage", "text").getString(""));
+            joinMessage = conf.node("joinMessage", "text").getString("");
 
         if (useBossBar)
             bossBar = conf.node("bossBar").get(BossBar.class);
@@ -125,8 +124,8 @@ public final class LimboConfig {
             title = conf.node("title").get(Title.class);
 
         if (useHeaderAndFooter) {
-            playerListHeader = Colors.of(conf.node("headerAndFooter", "header").getString());
-            playerListFooter = Colors.of(conf.node("headerAndFooter", "footer").getString());
+            playerListHeader = conf.node("headerAndFooter", "header").getString();
+            playerListFooter = conf.node("headerAndFooter", "footer").getString();
         }
 
         infoForwarding = conf.node("infoForwarding").get(InfoForwarding.class);

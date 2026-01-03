@@ -20,13 +20,12 @@ package ua.nanit.limbo.server.data;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
-import ua.nanit.limbo.protocol.NbtMessage;
-import ua.nanit.limbo.util.Colors;
-import ua.nanit.limbo.util.NbtMessageUtil;
+import ua.nanit.limbo.util.ComponentUtils;
 
 import java.lang.reflect.Type;
 import java.util.Locale;
@@ -35,7 +34,7 @@ import java.util.Locale;
 @Setter
 public class BossBar {
 
-    private NbtMessage text;
+    private Component text;
     private float health;
     private Color color;
     private Division division;
@@ -71,7 +70,7 @@ public class BossBar {
         public BossBar deserialize(Type type, ConfigurationNode node) throws SerializationException {
             BossBar bossBar = new BossBar();
 
-            bossBar.setText(NbtMessageUtil.create(Colors.of(node.node("text").getString(""))));
+            bossBar.setText(ComponentUtils.parse(node.node("text").getString("")));
             bossBar.setHealth(node.node("health").getFloat());
 
             if (bossBar.getHealth() < 0 || bossBar.getHealth() > 1)

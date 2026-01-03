@@ -20,6 +20,8 @@ package ua.nanit.limbo.connection;
 import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import ua.nanit.limbo.LimboConstants;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
@@ -32,8 +34,10 @@ import ua.nanit.limbo.protocol.packets.status.PacketStatusPing;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusRequest;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusResponse;
 import ua.nanit.limbo.protocol.registry.State;
+import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
+import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UuidUtil;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -56,7 +60,7 @@ public class PacketHandler {
                 conn.updateState(State.LOGIN);
 
                 if (!conn.getClientVersion().isSupported()) {
-                    conn.disconnect("Unsupported client version");
+                    conn.disconnect(Component.text("Unsupported client version", NamedTextColor.RED));
                     return;
                 }
 
@@ -67,20 +71,49 @@ public class PacketHandler {
                         conn.setAddress(split[1]);
                         conn.getGameProfile().setUuid(UuidUtil.fromString(split[2]));
                     } else {
-                        conn.disconnect("You've enabled player info forwarding. You need to connect with proxy");
+                        conn.disconnect(Component.text("You've enabled player info forwarding. You need to connect with proxy", NamedTextColor.RED));
                     }
                 } else if (this.server.getConfig().getInfoForwarding().isBungeeGuard()) {
                     if (!conn.checkBungeeGuardHandshake(packet.getHost())) {
-                        conn.disconnect("Invalid BungeeGuard token or handshake format");
+                        conn.disconnect(Component.text("Invalid BungeeGuard token or handshake format", NamedTextColor.RED));
                     }
                 }
             }
-            default -> conn.disconnect("Invalid handshake intent!");
+            default -> conn.disconnect(Component.text("Invalid handshake intent!", NamedTextColor.RED));
         }
     }
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketStatusRequest packet) {
-        conn.sendPacket(new PacketStatusResponse(server));
+        int protocol;
+        int staticProtocol = this.server.getConfig().getPingData().getProtocol();
+
+        if (staticProtocol > 0) {
+            protocol = staticProtocol;
+        } else {
+            protocol = this.server.getConfig().getInfoForwarding().isNone()
+                    ? conn.getClientVersion().getProtocolNumber()
+                    : Version.getMax().getProtocolNumber();
+        }
+
+        PacketStatusResponse packetStatusResponse = new PacketStatusResponse();
+        packetStatusResponse.setResponse(createStatusResponse(protocol));
+        conn.sendPacket(packetStatusResponse);
+    }
+
+    @NonNull
+    private PacketStatusResponse.Response createStatusResponse(int protocol) {
+        Component version = this.server.getConfig().getPingData().getVersion();
+        Component description = this.server.getConfig().getPingData().getDescription();
+
+        PacketStatusResponse.Response response = new PacketStatusResponse.Response();
+        response.setVersion(new PacketStatusResponse.Response.Protocol(ComponentUtils.toLegacyString(version), protocol));
+        response.setPlayers(new PacketStatusResponse.Response.Players(
+                this.server.getConfig().getMaxPlayers(),
+                this.server.getConnections().getCount(),
+                new PacketStatusResponse.Response.PlayerInfo[0]
+        ));
+        response.setDescription(description);
+        return response;
     }
 
     public void handle(@NonNull ClientConnection conn, @NonNull PacketStatusPing packet) {
@@ -90,7 +123,7 @@ public class PacketHandler {
     public void handle(@NonNull ClientConnection conn, @NonNull PacketLoginStart packet) {
         if (server.getConfig().getMaxPlayers() > 0 &&
                 server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
-            conn.disconnect("Too many players connected");
+            conn.disconnect(Component.text("Too many players connected", NamedTextColor.RED));
             return;
         }
 
@@ -120,12 +153,12 @@ public class PacketHandler {
                 && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
 
             if (!packet.isSuccessful() || packet.getData() == null) {
-                conn.disconnect("You need to connect with Velocity");
+                conn.disconnect(Component.text("You need to connect with Velocity", NamedTextColor.RED));
                 return;
             }
 
             if (!conn.checkVelocityKeyIntegrity(packet.getData())) {
-                conn.disconnect("Can't verify forwarded player info");
+                conn.disconnect(Component.text("Can't verify forwarded player info", NamedTextColor.RED));
                 return;
             }
 

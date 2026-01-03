@@ -36,7 +36,7 @@ import ua.nanit.limbo.protocol.packets.play.*;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.data.Title;
-import ua.nanit.limbo.util.NbtMessageUtil;
+import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UuidUtil;
 
 import java.util.*;
@@ -90,11 +90,15 @@ public class PacketSnapshots {
     public static PacketSnapshot PACKET_START_WAITING_CHUNKS;
 
     public static void initPackets(@NonNull LimboServer server) {
-        final String username = server.getConfig().getPingData().getVersion();
-        final UUID uuid = UuidUtil.getOfflineModeUuid(username);
+        String playerListName = server.getConfig().getPlayerListUsername();
+        if (playerListName.length() > 16) {
+            playerListName = playerListName.substring(0, 16);
+        }
+
+        final UUID uuid = UuidUtil.getOfflineModeUuid(playerListName);
 
         PacketLoginSuccess loginSuccess = new PacketLoginSuccess();
-        loginSuccess.setUsername(username);
+        loginSuccess.setUsername(playerListName);
         loginSuccess.setUuid(uuid);
 
         PacketJoinGame joinGame = new PacketJoinGame();
@@ -139,10 +143,6 @@ public class PacketSnapshots {
         declareCommands.setCommands(Collections.emptyList());
 
         PacketPlayerInfo info = new PacketPlayerInfo();
-        String playerListName = server.getConfig().getPlayerListUsername();
-        if (playerListName.length() > 16) {
-            playerListName = playerListName.substring(0, 16);
-        }
         info.setUsername(playerListName);
         info.setGameMode(server.getConfig().getGameMode());
         info.setUuid(uuid);
@@ -159,8 +159,8 @@ public class PacketSnapshots {
 
         if (server.getConfig().isUseHeaderAndFooter()) {
             PacketPlayerListHeader header = new PacketPlayerListHeader();
-            header.setHeader(NbtMessageUtil.create(server.getConfig().getPlayerListHeader()));
-            header.setFooter(NbtMessageUtil.create(server.getConfig().getPlayerListFooter()));
+            header.setHeader(ComponentUtils.parse(server.getConfig().getPlayerListHeader()));
+            header.setFooter(ComponentUtils.parse(server.getConfig().getPlayerListFooter()));
             PACKET_HEADER_AND_FOOTER = PacketSnapshot.of(header);
         }
 
@@ -169,7 +169,7 @@ public class PacketSnapshots {
             pluginMessage.setChannel(LimboConstants.BRAND_CHANNEL);
             ByteMessage byteMessage = new ByteMessage(ByteBufAllocator.DEFAULT.heapBuffer());
             try {
-                byteMessage.writeString(server.getConfig().getBrandName());
+                byteMessage.writeString(ComponentUtils.parseToLegacyString(server.getConfig().getBrandName()));
                 pluginMessage.setData(byteMessage.toByteArray());
             } finally {
                 byteMessage.release();
@@ -179,7 +179,7 @@ public class PacketSnapshots {
 
         if (server.getConfig().isUseJoinMessage()) {
             PacketChatMessage joinMessage = new PacketChatMessage();
-            joinMessage.setMessage(NbtMessageUtil.create(server.getConfig().getJoinMessage()));
+            joinMessage.setMessage(ComponentUtils.parse(server.getConfig().getJoinMessage()));
             joinMessage.setPosition(PacketChatMessage.PositionLegacy.SYSTEM_MESSAGE);
             joinMessage.setSender(UUID.randomUUID());
             PACKET_JOIN_MESSAGE = PacketSnapshot.of(joinMessage);

@@ -23,7 +23,14 @@ dependencies {
     implementation("io.netty:netty-transport-native-kqueue:4.2.9.Final:osx-x86_64")
     implementation("io.netty:netty-transport-native-kqueue:4.2.9.Final:osx-aarch_64")
 
+    implementation("net.kyori:adventure-api:4.26.1")
+    implementation("net.kyori:adventure-text-serializer-gson:4.26.1")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.26.1")
+    implementation("net.kyori:adventure-text-serializer-json-legacy-impl:4.26.1")
+    implementation("net.kyori:adventure-text-serializer-plain:4.26.1")
+    implementation("net.kyori:adventure-text-minimessage:4.26.1")
     implementation("net.kyori:adventure-nbt:4.26.1")
+
     implementation("com.google.code.gson:gson:2.13.2")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
