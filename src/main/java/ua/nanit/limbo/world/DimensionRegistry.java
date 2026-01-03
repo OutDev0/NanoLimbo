@@ -20,10 +20,7 @@ package ua.nanit.limbo.world;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.BinaryTagIO;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.ListBinaryTag;
+import net.kyori.adventure.nbt.*;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import ua.nanit.limbo.protocol.MetadataWriter;
 import ua.nanit.limbo.protocol.registry.Version;
@@ -32,10 +29,7 @@ import ua.nanit.limbo.server.data.NamespacedKey;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 
 @RequiredArgsConstructor
@@ -100,6 +94,16 @@ public final class DimensionRegistry {
         tags_1_21_7 = readCompoundBinaryTag("/dimension/tags_1_21_7.nbt");
         tags_1_21_9 = readCompoundBinaryTag("/dimension/tags_1_21_9.nbt");
         tags_1_21_11 = readCompoundBinaryTag("/dimension/tags_1_21_11.nbt");
+    }
+
+    @NonNull
+    private CompoundBinaryTag readCompoundBinaryTag(@NonNull String resPath) throws IOException {
+        try (InputStream in = this.server.getClass().getResourceAsStream(resPath)) {
+            if (in == null) {
+                throw new IllegalStateException("Input stream is null!");
+            }
+            return BinaryTagIO.unlimitedReader().read(in, BinaryTagIO.Compression.GZIP);
+        }
     }
 
     @NonNull
@@ -235,8 +239,8 @@ public final class DimensionRegistry {
     }
 
     @NonNull
-    private static MetadataWriter createMetadataCodec(@NonNull final String registryType,
-                                                      @NonNull final ListBinaryTag values) {
+    private static MetadataWriter createMetadataCodec(@NonNull String registryType,
+                                                      @NonNull ListBinaryTag values) {
         return (msg, version) -> {
             msg.writeString(registryType);
 
@@ -248,7 +252,7 @@ public final class DimensionRegistry {
                 BinaryTag element = entryTag.get("element");
 
                 msg.writeString(name);
-                if (element instanceof final CompoundBinaryTag elementTag) {
+                if (element instanceof CompoundBinaryTag elementTag) {
                     msg.writeBoolean(true);
                     msg.writeCompoundTag(elementTag, version);
                 } else {
@@ -259,9 +263,49 @@ public final class DimensionRegistry {
     }
 
     @NonNull
-    private CompoundBinaryTag readCompoundBinaryTag(@NonNull String resPath) throws IOException {
-        try (InputStream in = server.getClass().getResourceAsStream(resPath)) {
-            return BinaryTagIO.unlimitedReader().read(in, BinaryTagIO.Compression.GZIP);
+    public Map<String, Map<String, List<Integer>>> createUpdateTags(@NonNull Version version) {
+        if (version.moreOrEqual(Version.V1_21_11)) {
+            return parseUpdateTags(this.tags_1_21_11);
+        } else if (version.equals(Version.V1_21_9)) {
+            return parseUpdateTags(this.tags_1_21_9);
+        } else if (version.equals(Version.V1_21_7)) {
+            return parseUpdateTags(this.tags_1_21_7);
+        } else if (version.equals(Version.V1_21_6)) {
+            return parseUpdateTags(this.tags_1_21_6);
+        } else if (version.equals(Version.V1_21_5)) {
+            return parseUpdateTags(this.tags_1_21_5);
+        } else if (version.equals(Version.V1_21_4)) {
+            return parseUpdateTags(this.tags_1_21_4);
+        } else if (version.equals(Version.V1_21_2)) {
+            return parseUpdateTags(this.tags_1_21_2);
+        } else if (version.equals(Version.V1_21)) {
+            return parseUpdateTags(this.tags_1_21);
+        } else {
+            return parseUpdateTags(this.tags_1_20_5);
         }
+    }
+
+    @NonNull
+    private static Map<String, Map<String, List<Integer>>> parseUpdateTags(@NonNull CompoundBinaryTag tags) {
+        Map<String, Map<String, List<Integer>>> tagsMap = new HashMap<>();
+
+        for (Map.Entry<String, ? extends BinaryTag> namedTag : tags) {
+            Map<String, List<Integer>> subTagsMap = new HashMap<>();
+
+            CompoundBinaryTag subTag = (CompoundBinaryTag) namedTag.getValue();
+            for (Map.Entry<String, ? extends BinaryTag> subNamedTag : subTag) {
+                List<Integer> idsList = new ArrayList<>();
+                ListBinaryTag ids = (ListBinaryTag) subNamedTag.getValue();
+                for (BinaryTag id : ids) {
+                    idsList.add(((IntBinaryTag) id).value());
+                }
+
+                subTagsMap.put(subNamedTag.getKey(), idsList);
+            }
+
+            tagsMap.put(namedTag.getKey(), subTagsMap);
+        }
+
+        return tagsMap;
     }
 }

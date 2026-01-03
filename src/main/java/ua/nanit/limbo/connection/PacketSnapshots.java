@@ -20,10 +20,6 @@ package ua.nanit.limbo.connection;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.IntBinaryTag;
-import net.kyori.adventure.nbt.ListBinaryTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import ua.nanit.limbo.LimboConstants;
 import ua.nanit.limbo.protocol.ByteMessage;
@@ -40,6 +36,7 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.data.Title;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UuidUtil;
+import ua.nanit.limbo.world.DimensionRegistry;
 import ua.nanit.limbo.world.DimensionType;
 import ua.nanit.limbo.world.VersionedDimension;
 
@@ -98,7 +95,8 @@ public class PacketSnapshots {
 
         PacketLogin joinGame = new PacketLogin();
         DimensionType dimensionType = server.getConfig().getDimensionType();
-        VersionedDimension versionedDimension = dimensionType.createVersionedDimension(server.getDimensionRegistry());
+        DimensionRegistry dimensionRegistry = server.getDimensionRegistry();
+        VersionedDimension versionedDimension = dimensionType.createVersionedDimension(dimensionRegistry);
         joinGame.setEntityId(0);
         joinGame.setEnableRespawnScreen(true);
         joinGame.setFlat(false);
@@ -237,39 +235,20 @@ public class PacketSnapshots {
             return packetKnownPacks;
         });
 
-        // TODO Simplify...
         PACKET_UPDATE_TAGS = PacketSnapshot.of(PacketUpdateTags.class, (version) -> {
             PacketUpdateTags packetUpdateTags = new PacketUpdateTags();
-            if (version.moreOrEqual(Version.V1_21_11)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_11()));
-            } else if (version.moreOrEqual(Version.V1_21_9)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_9()));
-            } else if (version.moreOrEqual(Version.V1_21_7)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_7()));
-            } else if (version.moreOrEqual(Version.V1_21_6)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_6()));
-            } else if (version.moreOrEqual(Version.V1_21_5)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_5()));
-            } else if (version.moreOrEqual(Version.V1_21_4)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_4()));
-            } else if (version.moreOrEqual(Version.V1_21_2)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21_2()));
-            } else if (version.moreOrEqual(Version.V1_21)) {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_21()));
-            } else {
-                packetUpdateTags.setTags(parseUpdateTags(server.getDimensionRegistry().getTags_1_20_5()));
-            }
-
+            Map<String, Map<String, List<Integer>>> tags = dimensionRegistry.createUpdateTags(version);
+            packetUpdateTags.setTags(tags);
             return packetUpdateTags;
         });
 
         PacketRegistryData packetRegistryData = new PacketRegistryData();
-        packetRegistryData.setDimensionRegistry(server.getDimensionRegistry());
+        packetRegistryData.setMetadataWriter((msg, version) -> msg.writeCompoundTag(dimensionRegistry.getCodec_1_20(), version));
 
         PACKET_REGISTRY_DATA = PacketSnapshot.of(packetRegistryData);
 
         Map<Version, List<PacketSnapshot>> perVersionRegistries = new EnumMap<>(Version.class);
-        for (Map.Entry<Version, List<MetadataWriter>> entry : server.getDimensionRegistry().createPerVersionRegistries().entrySet()) {
+        for (Map.Entry<Version, List<MetadataWriter>> entry : dimensionRegistry.createPerVersionRegistries().entrySet()) {
             Version version = entry.getKey();
             List<MetadataWriter> registriesMetadata = entry.getValue();
 
@@ -309,30 +288,6 @@ public class PacketSnapshots {
             }
         }
         PACKETS_EMPTY_CHUNKS = emptyChunks;
-    }
-
-    @NonNull
-    private static Map<String, Map<String, List<Integer>>> parseUpdateTags(@NonNull CompoundBinaryTag tags) {
-        Map<String, Map<String, List<Integer>>> tagsMap = new HashMap<>();
-
-        for (Map.Entry<String, ? extends BinaryTag> namedTag : tags) {
-            Map<String, List<Integer>> subTagsMap = new HashMap<>();
-
-            CompoundBinaryTag subTag = (CompoundBinaryTag) namedTag.getValue();
-            for (Map.Entry<String, ? extends BinaryTag> subNamedTag : subTag) {
-                List<Integer> idsList = new ArrayList<>();
-                ListBinaryTag ids = (ListBinaryTag) subNamedTag.getValue();
-                for (BinaryTag id : ids) {
-                    idsList.add(((IntBinaryTag) id).value());
-                }
-
-                subTagsMap.put(subNamedTag.getKey(), idsList);
-            }
-
-            tagsMap.put(namedTag.getKey(), subTagsMap);
-        }
-
-        return tagsMap;
     }
 
     @Nullable
