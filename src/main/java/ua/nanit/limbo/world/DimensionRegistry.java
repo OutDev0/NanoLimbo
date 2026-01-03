@@ -25,12 +25,17 @@ import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import ua.nanit.limbo.protocol.MetadataWriter;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.data.NamespacedKey;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 @RequiredArgsConstructor
@@ -195,6 +200,62 @@ public final class DimensionRegistry {
 
         CompoundBinaryTag defaultDimension = (CompoundBinaryTag) dimensions.get(0);
         return function.apply(0, defaultDimension);
+    }
+
+    @NonNull
+    public Map<Version, List<MetadataWriter>> createPerVersionRegistries() {
+        Map<Version, List<MetadataWriter>> perVersionRegistry = new EnumMap<>(Version.class);
+        for (Version version : Version.values()) {
+            if (version.less(Version.V1_20_5)) {
+                continue;
+            }
+
+            perVersionRegistry.put(version, createRegistries(getRegistryByVersion(version)));
+        }
+
+        return perVersionRegistry;
+    }
+
+    @NonNull
+    private static List<MetadataWriter> createRegistries(@NonNull CompoundBinaryTag tags) {
+        List<MetadataWriter> cachedRegistriesData = new ArrayList<>();
+        for (Map.Entry<String, ? extends BinaryTag> entry : tags) {
+            String registryType = entry.getKey();
+            CompoundBinaryTag compoundRegistryType = (CompoundBinaryTag) entry.getValue();
+
+            ListBinaryTag values = compoundRegistryType.getList("value");
+
+            cachedRegistriesData.add(createMetadataCodec(
+                    registryType,
+                    values
+            ));
+        }
+
+        return cachedRegistriesData;
+    }
+
+    @NonNull
+    private static MetadataWriter createMetadataCodec(@NonNull final String registryType,
+                                                      @NonNull final ListBinaryTag values) {
+        return (msg, version) -> {
+            msg.writeString(registryType);
+
+            msg.writeVarInt(values.size());
+            for (BinaryTag entry : values) {
+                CompoundBinaryTag entryTag = (CompoundBinaryTag) entry;
+
+                String name = entryTag.getString("name");
+                BinaryTag element = entryTag.get("element");
+
+                msg.writeString(name);
+                if (element instanceof final CompoundBinaryTag elementTag) {
+                    msg.writeBoolean(true);
+                    msg.writeCompoundTag(elementTag, version);
+                } else {
+                    msg.writeBoolean(false);
+                }
+            }
+        };
     }
 
     @NonNull

@@ -24,8 +24,10 @@ import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.IntBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import ua.nanit.limbo.LimboConstants;
 import ua.nanit.limbo.protocol.ByteMessage;
+import ua.nanit.limbo.protocol.MetadataWriter;
 import ua.nanit.limbo.protocol.PacketSnapshot;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
 import ua.nanit.limbo.protocol.packets.configuration.PacketKnownPacks;
@@ -71,20 +73,11 @@ public class PacketSnapshots {
     public static PacketSnapshot PACKET_TITLE_LEGACY_TIMES;
 
     public static PacketSnapshot PACKET_REGISTRY_DATA;
+    private static Map<Version, List<PacketSnapshot>> PACKETS_REGISTRY_DATA;
 
     public static PacketSnapshot PACKET_KNOWN_PACKS;
 
     public static PacketSnapshot PACKET_UPDATE_TAGS;
-
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_20_5;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_2;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_4;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_5;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_6;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_7;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_9;
-    public static List<PacketSnapshot> PACKETS_REGISTRY_DATA_1_21_11;
 
     public static PacketSnapshot PACKET_FINISH_CONFIGURATION;
 
@@ -275,16 +268,22 @@ public class PacketSnapshots {
 
         PACKET_REGISTRY_DATA = PacketSnapshot.of(packetRegistryData);
 
-        // TODO Simplify...
-        PACKETS_REGISTRY_DATA_1_20_5 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_20_5());
-        PACKETS_REGISTRY_DATA_1_21 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21());
-        PACKETS_REGISTRY_DATA_1_21_2 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_2());
-        PACKETS_REGISTRY_DATA_1_21_4 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_4());
-        PACKETS_REGISTRY_DATA_1_21_5 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_5());
-        PACKETS_REGISTRY_DATA_1_21_6 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_6());
-        PACKETS_REGISTRY_DATA_1_21_7 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_7());
-        PACKETS_REGISTRY_DATA_1_21_9 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_9());
-        PACKETS_REGISTRY_DATA_1_21_11 = createRegistryData(server, server.getDimensionRegistry().getCodec_1_21_11());
+        Map<Version, List<PacketSnapshot>> perVersionRegistries = new EnumMap<>(Version.class);
+        for (Map.Entry<Version, List<MetadataWriter>> entry : server.getDimensionRegistry().createPerVersionRegistries().entrySet()) {
+            Version version = entry.getKey();
+            List<MetadataWriter> registriesMetadata = entry.getValue();
+
+            List<PacketSnapshot> packetSnapshots = new ArrayList<>();
+            for (MetadataWriter writeableData : registriesMetadata) {
+                PacketRegistryData registryData = new PacketRegistryData();
+                registryData.setMetadataWriter(writeableData);
+
+                packetSnapshots.add(PacketSnapshot.of(registryData, version));
+            }
+
+            perVersionRegistries.put(version, packetSnapshots);
+        }
+        PACKETS_REGISTRY_DATA = perVersionRegistries;
 
         PACKET_FINISH_CONFIGURATION = PacketSnapshot.of(new PacketFinishConfiguration());
 
@@ -336,39 +335,8 @@ public class PacketSnapshots {
         return tagsMap;
     }
 
-    @NonNull
-    private static List<PacketSnapshot> createRegistryData(@NonNull LimboServer server, @NonNull CompoundBinaryTag dimensionTag) {
-        List<PacketSnapshot> packetRegistries = new ArrayList<>();
-        for (String registryType : dimensionTag.keySet()) {
-            CompoundBinaryTag compoundRegistryType = dimensionTag.getCompound(registryType);
-
-            PacketRegistryData registryData = new PacketRegistryData();
-            registryData.setDimensionRegistry(server.getDimensionRegistry());
-
-            ListBinaryTag values = compoundRegistryType.getList("value");
-            registryData.setMetadataWriter((message, version) -> {
-                message.writeString(registryType);
-
-                message.writeVarInt(values.size());
-                for (BinaryTag entry : values) {
-                    CompoundBinaryTag entryTag = (CompoundBinaryTag) entry;
-
-                    String name = entryTag.getString("name");
-                    CompoundBinaryTag element = entryTag.getCompound("element", null);
-
-                    message.writeString(name);
-                    if (element != null) {
-                        message.writeBoolean(true);
-                        message.writeCompoundTag(element, version);
-                    } else {
-                        message.writeBoolean(false);
-                    }
-                }
-            });
-
-            packetRegistries.add(PacketSnapshot.of(registryData));
-        }
-
-        return packetRegistries;
+    @Nullable
+    public static List<PacketSnapshot> getPacketsRegistryData(@NonNull Version version) {
+        return PACKETS_REGISTRY_DATA.get(version);
     }
 }
