@@ -20,8 +20,8 @@ ping:
   # https://wiki.vg/Protocol_version_numbers
   protocol: -1
 
-# Available dimensions: overworld, the_nether, the_end
-dimension: the_end
+# Available dimensions: OVERWORLD, THE_NETHER, THE_END
+dimension: THE_END
 
 # Whether to display the player in the player list
 # For 1.16.5 clients, the player list will be sent even if disabled, to avoid crash
@@ -112,11 +112,11 @@ debugLevel: 2
 # Warning! Do not touch params of this block if you are not completely sure what is this!
 netty:
   # Available transport type:
-  # - epoll
-  # - io_uring
-  # - kqueue
-  # - nio
-  transportType: epoll
+  # - EPOLL
+  # - IO_URING
+  # - KQUEUE
+  # - NIO
+  transportType: EPOLL
   # EventLoopGroup threads count
   threads:
     bossGroup: 1

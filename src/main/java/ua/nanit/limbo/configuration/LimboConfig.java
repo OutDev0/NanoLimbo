@@ -28,6 +28,7 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import ua.nanit.limbo.configuration.serializers.*;
 import ua.nanit.limbo.server.TransportType;
 import ua.nanit.limbo.server.data.*;
+import ua.nanit.limbo.world.DimensionType;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -48,7 +49,7 @@ public final class LimboConfig {
     private int maxPlayers;
     private PingData pingData;
 
-    private NamespacedKey dimensionType;
+    private DimensionType dimensionType;
     private int gameMode;
     private boolean secureProfile;
 
@@ -94,13 +95,7 @@ public final class LimboConfig {
         address = conf.node("bind").get(SocketAddress.class);
         maxPlayers = conf.node("maxPlayers").getInt(100);
         pingData = conf.node("ping").get(PingData.class);
-        dimensionType = conf.node("dimension").get(NamespacedKey.class, NamespacedKey.minecraft("the_end"));
-        if (dimensionType.getKey().equalsIgnoreCase("nether")) {
-            dimensionType.setKey("the_nether");
-        }
-        if (dimensionType.getKey().equalsIgnoreCase("end")) {
-            dimensionType.setKey("the_end");
-        }
+        dimensionType = conf.node("dimension").get(DimensionType.class, DimensionType.THE_END);
         gameMode = conf.node("gameMode").getInt(3);
         secureProfile = conf.node("secureProfile").getBoolean(false);
         useBrandName = conf.node("brandName", "enable").getBoolean();
@@ -171,6 +166,7 @@ public final class LimboConfig {
                 .register(SocketAddress.class, new SocketAddressSerializer())
                 .register(Component.class, new ComponentSerializer())
                 .register(TransportType.class, new TransportTypeSerializer())
+                .register(DimensionType.class, new DimensionTypeSerializer())
                 .register(NamespacedKey.class, new NamespacedKeySerializer())
                 .register(InfoForwarding.class, new InfoForwardingSerializer())
                 .register(PingData.class, new PingDataSerializer())

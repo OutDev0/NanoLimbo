@@ -35,10 +35,11 @@ import ua.nanit.limbo.protocol.packets.login.PacketLoginSuccess;
 import ua.nanit.limbo.protocol.packets.play.*;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
-import ua.nanit.limbo.server.data.NamespacedKey;
 import ua.nanit.limbo.server.data.Title;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UuidUtil;
+import ua.nanit.limbo.world.DimensionType;
+import ua.nanit.limbo.world.VersionedDimension;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -102,8 +103,9 @@ public class PacketSnapshots {
         loginSuccess.setUsername(playerListName);
         loginSuccess.setUuid(uuid);
 
-        PacketJoinGame joinGame = new PacketJoinGame();
-        NamespacedKey dimensionKey = server.getConfig().getDimensionType();
+        PacketLogin joinGame = new PacketLogin();
+        DimensionType dimensionType = server.getConfig().getDimensionType();
+        VersionedDimension versionedDimension = dimensionType.createVersionedDimension(server.getDimensionRegistry());
         joinGame.setEntityId(0);
         joinGame.setEnableRespawnScreen(true);
         joinGame.setFlat(false);
@@ -115,14 +117,12 @@ public class PacketSnapshots {
         joinGame.setReducedDebugInfo(true);
         joinGame.setDebug(false);
         joinGame.setViewDistance(0);
-        joinGame.setWorldKey(dimensionKey);
-        joinGame.setWorldsKey(new NamespacedKey[]{dimensionKey});
-        joinGame.setHashedSeed(0);
-        joinGame.setDimensionRegistry(server.getDimensionRegistry());
+        joinGame.setSeed(0);
+        joinGame.setDimension(versionedDimension);
 
         PacketPlayerAbilities playerAbilities = new PacketPlayerAbilities();
         playerAbilities.setFlyingSpeed(0.0F);
-        playerAbilities.setFlags(0x02);
+        playerAbilities.setFlying(true);
         playerAbilities.setFieldOfView(0.1F);
 
         int teleportId = ThreadLocalRandom.current().nextInt();
@@ -134,9 +134,11 @@ public class PacketSnapshots {
                 = new PacketPlayerPositionAndLook(0, 400, 0, 0, 0, teleportId);
 
         PacketSpawnPosition packetSpawnPosition = new PacketSpawnPosition(
-                dimensionKey,
+                versionedDimension.getKey(),
                 0,
                 400,
+                0,
+                0,
                 0
         );
 
@@ -302,6 +304,7 @@ public class PacketSnapshots {
                 PacketChunkWithLight packetChunkWithLight = new PacketChunkWithLight();
                 packetChunkWithLight.setX(chunkX);
                 packetChunkWithLight.setZ(chunkZ);
+                packetChunkWithLight.setDimension(versionedDimension);
 
                 emptyChunks.add(PacketSnapshot.of(packetChunkWithLight));
             }

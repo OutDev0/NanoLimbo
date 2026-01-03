@@ -205,7 +205,7 @@ public enum State {
                     map(0x11, V1_20_2, V1_21_4),
                     map(0x10, V1_21_5, Version.getMax())
             );
-            clientBound.register(PacketJoinGame::new,
+            clientBound.register(PacketLogin::new,
                     map(0x01, V1_7_2, V1_8),
                     map(0x23, V1_9, V1_12_2),
                     map(0x25, V1_13, V1_14_4),

@@ -35,6 +35,8 @@ public class PacketSpawnPosition implements PacketOut {
     private long x;
     private long y;
     private long z;
+    private float yaw;
+    private float pitch;
 
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
@@ -42,9 +44,9 @@ public class PacketSpawnPosition implements PacketOut {
             msg.writeNamespacedKey(this.dimensionKey);
         }
         msg.writeLong(encodePosition(this.x, this.y, this.z));
-        msg.writeFloat(0);
+        msg.writeFloat(this.yaw);
         if (version.moreOrEqual(Version.V1_21_9)) {
-            msg.writeFloat(0);
+            msg.writeFloat(this.pitch);
         }
     }
 

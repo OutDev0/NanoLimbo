@@ -59,7 +59,7 @@ public final class LimboServer {
 
         packetHandler = new PacketHandler(this);
         dimensionRegistry = new DimensionRegistry(this);
-        dimensionRegistry.load(config.getDimensionType());
+        dimensionRegistry.load();
         connections = new Connections();
 
         PacketSnapshots.initPackets(this);
