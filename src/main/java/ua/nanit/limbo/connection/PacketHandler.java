@@ -38,7 +38,7 @@ import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
-import ua.nanit.limbo.util.UuidUtil;
+import ua.nanit.limbo.util.UUIDUtils;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -69,7 +69,7 @@ public class PacketHandler {
 
                     if (split.length == 3 || split.length == 4) {
                         conn.setAddress(split[1]);
-                        conn.getGameProfile().setUuid(UuidUtil.fromString(split[2]));
+                        conn.getGameProfile().setUuid(UUIDUtils.fromString(split[2]));
                     } else {
                         conn.disconnect(Component.text("You've enabled player info forwarding. You need to connect with proxy", NamedTextColor.RED));
                     }
@@ -142,7 +142,7 @@ public class PacketHandler {
 
         if (!server.getConfig().getInfoForwarding().isModern()) {
             conn.getGameProfile().setUsername(packet.getUsername());
-            conn.getGameProfile().setUuid(UuidUtil.getOfflineModeUuid(packet.getUsername()));
+            conn.getGameProfile().setUuid(UUIDUtils.getOfflineModeUuid(packet.getUsername()));
         }
 
         conn.fireLoginSuccess();

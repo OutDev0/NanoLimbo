@@ -24,12 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @UtilityClass
-public class UuidUtil {
+public class UUIDUtils {
 
     @NonNull
     public static UUID getOfflineModeUuid(@NonNull String username) {
-        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username)
-                .getBytes(StandardCharsets.UTF_8));
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
 
     @NonNull
@@ -37,6 +36,9 @@ public class UuidUtil {
         if (str.contains("-")) {
             return UUID.fromString(str);
         }
-        return UUID.fromString(str.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"));
+        return UUID.fromString(str.replaceFirst(
+                "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
+                "$1-$2-$3-$4-$5"
+        ));
     }
 }

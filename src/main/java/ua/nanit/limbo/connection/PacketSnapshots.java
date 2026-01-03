@@ -35,7 +35,7 @@ import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.data.Title;
 import ua.nanit.limbo.util.ComponentUtils;
-import ua.nanit.limbo.util.UuidUtil;
+import ua.nanit.limbo.util.UUIDUtils;
 import ua.nanit.limbo.world.DimensionRegistry;
 import ua.nanit.limbo.world.DimensionType;
 import ua.nanit.limbo.world.VersionedDimension;
@@ -87,7 +87,7 @@ public class PacketSnapshots {
             playerListName = playerListName.substring(0, 16);
         }
 
-        final UUID uuid = UuidUtil.getOfflineModeUuid(playerListName);
+        final UUID uuid = UUIDUtils.getOfflineModeUuid(playerListName);
 
         PacketLoginSuccess loginSuccess = new PacketLoginSuccess();
         loginSuccess.setUsername(playerListName);

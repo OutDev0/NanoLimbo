@@ -42,7 +42,7 @@ import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
-import ua.nanit.limbo.util.UuidUtil;
+import ua.nanit.limbo.util.UUIDUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -154,30 +154,37 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
                 writePacket(PacketSnapshots.PACKET_PLAYER_POS_AND_LOOK);
             }
 
-            if (clientVersion.moreOrEqual(Version.V1_19_3))
+            if (clientVersion.moreOrEqual(Version.V1_19_3)) {
                 writePacket(PacketSnapshots.PACKET_SPAWN_POSITION);
+            }
 
-            if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4))
+            if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4)) {
                 writePacket(PacketSnapshots.PACKET_PLAYER_INFO);
+            }
 
             if (clientVersion.moreOrEqual(Version.V1_13)) {
                 writePacket(PacketSnapshots.PACKET_DECLARE_COMMANDS);
 
-                if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null)
+                if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null) {
                     writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
+                }
             }
 
-            if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9))
+            if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9)) {
                 writePacket(PacketSnapshots.PACKET_BOSS_BAR);
+            }
 
-            if (PacketSnapshots.PACKET_JOIN_MESSAGE != null)
+            if (PacketSnapshots.PACKET_JOIN_MESSAGE != null) {
                 writePacket(PacketSnapshots.PACKET_JOIN_MESSAGE);
+            }
 
-            if (PacketSnapshots.PACKET_TITLE_TITLE != null && clientVersion.moreOrEqual(Version.V1_8))
+            if (PacketSnapshots.PACKET_TITLE_TITLE != null && clientVersion.moreOrEqual(Version.V1_8)) {
                 writeTitle();
+            }
 
-            if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null && clientVersion.moreOrEqual(Version.V1_8))
+            if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null && clientVersion.moreOrEqual(Version.V1_8)) {
                 writePacket(PacketSnapshots.PACKET_HEADER_AND_FOOTER);
+            }
 
             if (clientVersion.moreOrEqual(Version.V1_20_3)) {
                 writePacket(PacketSnapshots.PACKET_START_WAITING_CHUNKS);
@@ -242,16 +249,18 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
             return;
         }
 
+        Packet packet;
         if (this.state == State.LOGIN) {
             PacketLoginDisconnect packetLoginDisconnect = new PacketLoginDisconnect();
             packetLoginDisconnect.setReason(reason);
-            sendPacketAndClose(packetLoginDisconnect);
-            return;
+            packet = packetLoginDisconnect;
+        } else {
+            PacketDisconnect packetDisconnect = new PacketDisconnect();
+            packetDisconnect.setReason(reason);
+            packet = packetDisconnect;
         }
 
-        PacketDisconnect packetDisconnect = new PacketDisconnect();
-        packetDisconnect.setReason(reason);
-        sendPacketAndClose(packetDisconnect);
+        sendPacketAndClose(packet);
     }
 
     public void writeTitle() {
@@ -324,7 +333,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         }
 
         String socketAddressHostname = split[1];
-        UUID uuid = UuidUtil.fromString(split[2]);
+        UUID uuid = UUIDUtils.fromString(split[2]);
 
         String token = null;
 
