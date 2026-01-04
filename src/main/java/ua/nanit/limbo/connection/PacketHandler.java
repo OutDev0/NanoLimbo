@@ -40,7 +40,7 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UUIDUtils;
-import ua.nanit.limbo.util.VelocityForwarding;
+import ua.nanit.limbo.util.ForwardingUtils;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -77,7 +77,7 @@ public class PacketHandler {
                         conn.disconnect(Component.text("You've enabled player info forwarding. You need to connect with proxy", NamedTextColor.RED));
                     }
                 } else if (this.server.getConfig().getInfoForwarding().isBungeeGuard()) {
-                    if (!conn.checkBungeeGuardHandshake(packet.getHost())) {
+                    if (!ForwardingUtils.checkBungeeGuardHandshake(conn, packet.getHost())) {
                         conn.disconnect(Component.text("Invalid BungeeGuard token or handshake format", NamedTextColor.RED));
                     }
                 }
@@ -137,7 +137,7 @@ public class PacketHandler {
                 PacketLoginPluginRequest request = new PacketLoginPluginRequest();
                 request.setMessageId(loginId);
                 request.setChannel(LimboConstants.VELOCITY_INFO_CHANNEL);
-                msg.writeByte(VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION);
+                msg.writeByte(ForwardingUtils.VELOCITY_MAX_SUPPORTED_FORWARDING_VERSION);
                 request.setData(msg);
 
                 conn.setVelocityLoginMessageId(loginId);
@@ -166,14 +166,14 @@ public class PacketHandler {
             }
 
             ByteMessage msg = packet.getData();
-            if (!VelocityForwarding.checkVelocityKeyIntegrity(conn, msg)) {
+            if (!ForwardingUtils.checkVelocityKeyIntegrity(conn, msg)) {
                 conn.disconnect(Component.text("Can't verify forwarded player info", NamedTextColor.RED));
                 return;
             }
 
             int version = msg.readVarInt();
-            if (version > VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION) {
-                conn.disconnect(Component.text("Unsupported forwarding version " + version + ", wanted upto " + VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION, NamedTextColor.RED));
+            if (version > ForwardingUtils.VELOCITY_MAX_SUPPORTED_FORWARDING_VERSION) {
+                conn.disconnect(Component.text("Unsupported forwarding version " + version + ", wanted upto " + ForwardingUtils.VELOCITY_MAX_SUPPORTED_FORWARDING_VERSION, NamedTextColor.RED));
                 return;
             }
 

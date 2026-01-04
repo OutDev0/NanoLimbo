@@ -17,7 +17,6 @@
 
 package ua.nanit.limbo.connection;
 
-import com.google.gson.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,7 +40,6 @@ import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
-import ua.nanit.limbo.util.UUIDUtils;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -319,57 +317,5 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     public void setAddress(@NonNull String host) {
         this.address = new InetSocketAddress(host, ((InetSocketAddress) this.address).getPort());
     }
-
-    public boolean checkBungeeGuardHandshake(@NonNull String handshake) {
-        String[] split = handshake.split("\00");
-
-        if (split.length != 4) {
-            return false;
-        }
-
-        String socketAddressHostname = split[1];
-        UUID uuid = UUIDUtils.fromString(split[2]);
-
-        String token = null;
-
-        try {
-            JsonElement rootElement = JsonParser.parseString(split[3]);
-            if (!rootElement.isJsonArray()) {
-                return false;
-            }
-
-            JsonArray jsonArray = rootElement.getAsJsonArray();
-            for (JsonElement jsonElement : jsonArray) {
-                if (jsonElement.isJsonObject()) {
-                    JsonObject jsonObject = jsonElement.getAsJsonObject();
-
-                    JsonElement nameElement = jsonObject.get("name");
-                    if (nameElement != null && nameElement.isJsonPrimitive()) {
-                        if (nameElement.getAsString().equals("bungeeguard-token")) {
-                            JsonElement valueElement = jsonObject.get("value");
-                            if (valueElement != null && valueElement.isJsonPrimitive()) {
-                                token = valueElement.getAsString();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (JsonParseException e) {
-            return false;
-        }
-
-        if (!server.getConfig().getInfoForwarding().hasToken(token)) {
-            return false;
-        }
-
-        setAddress(socketAddressHostname);
-        gameProfile.setUuid(uuid);
-
-        Log.debug("Successfully verified BungeeGuard token");
-
-        return true;
-    }
-
 
 }
