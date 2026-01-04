@@ -23,6 +23,7 @@ import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import ua.nanit.limbo.LimboConstants;
+import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
 import ua.nanit.limbo.protocol.packets.configuration.PacketKnownPacks;
@@ -39,7 +40,9 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UUIDUtils;
+import ua.nanit.limbo.util.VelocityForwarding;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @AllArgsConstructor
@@ -129,14 +132,19 @@ public class PacketHandler {
 
         if (server.getConfig().getInfoForwarding().isModern()) {
             int loginId = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
-            PacketLoginPluginRequest request = new PacketLoginPluginRequest();
+            ByteMessage msg = new ByteMessage(Unpooled.buffer());
+            try {
+                PacketLoginPluginRequest request = new PacketLoginPluginRequest();
+                request.setMessageId(loginId);
+                request.setChannel(LimboConstants.VELOCITY_INFO_CHANNEL);
+                msg.writeByte(VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION);
+                request.setData(msg);
 
-            request.setMessageId(loginId);
-            request.setChannel(LimboConstants.VELOCITY_INFO_CHANNEL);
-            request.setData(Unpooled.EMPTY_BUFFER);
-
-            conn.setVelocityLoginMessageId(loginId);
-            conn.sendPacket(request);
+                conn.setVelocityLoginMessageId(loginId);
+                conn.sendPacket(request);
+            } finally {
+                msg.release();
+            }
             return;
         }
 
@@ -157,15 +165,26 @@ public class PacketHandler {
                 return;
             }
 
-            if (!conn.checkVelocityKeyIntegrity(packet.getData())) {
+            ByteMessage msg = packet.getData();
+            if (!VelocityForwarding.checkVelocityKeyIntegrity(conn, msg)) {
                 conn.disconnect(Component.text("Can't verify forwarded player info", NamedTextColor.RED));
                 return;
             }
 
-            // Order is important
-            conn.setAddress(packet.getData().readString());
-            conn.getGameProfile().setUuid(packet.getData().readUuid());
-            conn.getGameProfile().setUsername(packet.getData().readString());
+            int version = msg.readVarInt();
+            if (version > VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION) {
+                conn.disconnect(Component.text("Unsupported forwarding version " + version + ", wanted upto " + VelocityForwarding.MAX_SUPPORTED_FORWARDING_VERSION, NamedTextColor.RED));
+                return;
+            }
+
+            String address = msg.readString();
+            UUID uuid = msg.readUuid();
+            String userName = msg.readString();
+
+            conn.setAddress(address);
+            GameProfile gameProfile = conn.getGameProfile();
+            gameProfile.setUuid(uuid);
+            gameProfile.setUsername(userName);
 
             conn.fireLoginSuccess();
         }

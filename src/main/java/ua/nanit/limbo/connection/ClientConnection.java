@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.connection.pipeline.PacketDecoder;
 import ua.nanit.limbo.connection.pipeline.PacketEncoder;
-import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.Packet;
 import ua.nanit.limbo.protocol.PacketSnapshot;
 import ua.nanit.limbo.protocol.packets.login.PacketLoginDisconnect;
@@ -44,12 +43,8 @@ import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UUIDUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -376,25 +371,5 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         return true;
     }
 
-    public boolean checkVelocityKeyIntegrity(@NonNull ByteMessage buf) {
-        byte[] signature = new byte[32];
-        buf.readBytes(signature);
-        byte[] data = new byte[buf.readableBytes()];
-        buf.getBytes(buf.readerIndex(), data);
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(server.getConfig().getInfoForwarding().getSecretKey(), "HmacSHA256"));
-            byte[] mySignature = mac.doFinal(data);
-            if (!MessageDigest.isEqual(signature, mySignature)) {
-                return false;
-            }
-        } catch (InvalidKeyException | java.security.NoSuchAlgorithmException e) {
-            throw new AssertionError(e);
-        }
-        int version = buf.readVarInt();
-        if (version != 1) {
-            throw new IllegalStateException("Unsupported forwarding version " + version + ", wanted " + '\001');
-        }
-        return true;
-    }
+
 }
