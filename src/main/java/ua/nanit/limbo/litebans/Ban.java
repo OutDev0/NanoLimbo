@@ -22,11 +22,24 @@ public record Ban(
 ) {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss");
 
-    public Duration getDuration() {
+    public Duration getTotalDuration() {
         return Duration.between(
             Instant.ofEpochMilli(start),
             Instant.ofEpochMilli(end)
         );
+    }
+
+    public Duration getRemainingDuration() {
+        Duration remaining = Duration.between(
+            Instant.now(),
+            Instant.ofEpochMilli(end)
+        );
+
+        if (remaining.isNegative()) {
+            return Duration.ZERO;
+        }
+
+        return remaining;
     }
 
     public Instant getExpiry() {
@@ -48,7 +61,7 @@ public record Ban(
     public @NotNull Component constructKickMessage() {
         String durationString = end == 0
             ? "Never (Permanent)"
-            : DurationFormatter.formatDuration(getDuration())
+            : DurationFormatter.formatDuration(getRemainingDuration())
             + " ("
             + DATE_TIME_FORMATTER.format(getEndDateTime())
             + ")";
