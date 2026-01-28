@@ -42,6 +42,7 @@ import ua.nanit.limbo.util.ComponentUtils;
 import ua.nanit.limbo.util.UUIDUtils;
 import ua.nanit.limbo.util.ForwardingUtils;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -135,8 +136,7 @@ public class PacketHandler {
             .map((ban) -> ban.isExpired() ? null : ban) // exclude expired bans
             .map((ban) -> {
                 Log.info("Disconnected %s (Banned: %s)", packet.getUsername(), ban.reason());
-                conn.disconnectLogin(ban.constructKickMessage());
-//                conn.disconnectLogin();
+                conn.disconnect(ban.constructKickMessage());
                 return true;
             });
 
