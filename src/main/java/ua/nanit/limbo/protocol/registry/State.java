@@ -20,7 +20,6 @@ package ua.nanit.limbo.protocol.registry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import ua.nanit.limbo.protocol.Packet;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
@@ -41,53 +40,63 @@ import static ua.nanit.limbo.protocol.registry.Version.*;
 @AllArgsConstructor
 public enum State {
 
-    HANDSHAKING(0) {
+    HANDSHAKING {
         {
-            serverBound.register(PacketHandshake::new,
+            serverBound.register(
+                    PacketHandshake::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
         }
     },
-    STATUS(1) {
+    STATUS {
         {
-            serverBound.register(PacketStatusRequest::new,
+            serverBound.register(
+                    PacketStatusRequest::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
-            serverBound.register(PacketStatusPing::new,
+            serverBound.register(
+                    PacketStatusPing::new,
                     map(0x01, Version.getMin(), Version.getMax())
             );
-            clientBound.register(PacketStatusResponse::new,
+            clientBound.register(
+                    PacketStatusResponse::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
-            clientBound.register(PacketStatusPing::new,
+            clientBound.register(
+                    PacketStatusPing::new,
                     map(0x01, Version.getMin(), Version.getMax())
             );
         }
     },
-    LOGIN(2) {
+    LOGIN {
         {
-            serverBound.register(PacketLoginStart::new,
+            serverBound.register(
+                    PacketLoginStart::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
-            serverBound.register(PacketLoginPluginResponse::new,
+            serverBound.register(
+                    PacketLoginPluginResponse::new,
                     map(0x02, Version.getMin(), Version.getMax())
             );
             serverBound.register(
                     PacketLoginAcknowledged::new,
                     map(0x03, V1_20_2, Version.getMax())
             );
-            clientBound.register(PacketDisconnect::new,
+            clientBound.register(
+                    PacketLoginDisconnect::new,
                     map(0x00, Version.getMin(), Version.getMax())
             );
-            clientBound.register(PacketLoginSuccess::new,
+            clientBound.register(
+                    PacketLoginSuccess::new,
                     map(0x02, Version.getMin(), Version.getMax())
             );
-            clientBound.register(PacketLoginPluginRequest::new,
+            clientBound.register(
+                    PacketLoginPluginRequest::new,
                     map(0x04, Version.getMin(), Version.getMax())
             );
         }
     },
-    CONFIGURATION(3) {
+    CONFIGURATION {
         {
             clientBound.register(
                     PacketPluginMessage::new,
@@ -144,7 +153,7 @@ public enum State {
             );
         }
     },
-    PLAY(4) {
+    PLAY {
         {
             serverBound.register(PacketKeepAlive::new,
                     map(0x00, V1_7_2, V1_8),
@@ -165,7 +174,25 @@ public enum State {
                     map(0x1A, V1_21_2, V1_21_5),
                     map(0x1B, V1_21_6, Version.getMax())
             );
-
+            clientBound.register(PacketDisconnect::new,
+                    map(0x40, V1_7_2, V1_8),
+                    map(0x1A, V1_9, V1_12_2),
+                    map(0x1B, V1_13, V1_13_2),
+                    map(0x1A, V1_14, V1_14_4),
+                    map(0x1B, V1_15, V1_15_2),
+                    map(0x1A, V1_16, V1_16_1),
+                    map(0x19, V1_16_2, V1_16_4),
+                    map(0x1A, V1_17, V1_18_2),
+                    map(0x17, V1_19, V1_19),
+                    map(0x19, V1_19_1, V1_19_1),
+                    map(0x17, V1_19_3, V1_19_3),
+                    map(0x1A, V1_19_4, V1_20),
+                    map(0x1B, V1_20_2, V1_20_2),
+                    map(0x15, V1_20_3, V1_20_3),
+                    map(0x1D, V1_20_5, V1_21_4),
+                    map(0x1C, V1_21_5, V1_21_7),
+                    map(0x20, V1_21_9, Version.getMax())
+            );
             clientBound.register(PacketDeclareCommands::new,
                     map(0x11, V1_13, V1_14_4),
                     map(0x12, V1_15, V1_15_2),
@@ -178,7 +205,7 @@ public enum State {
                     map(0x11, V1_20_2, V1_21_4),
                     map(0x10, V1_21_5, Version.getMax())
             );
-            clientBound.register(PacketJoinGame::new,
+            clientBound.register(PacketLogin::new,
                     map(0x01, V1_7_2, V1_8),
                     map(0x23, V1_9, V1_12_2),
                     map(0x25, V1_13, V1_14_4),
@@ -416,22 +443,8 @@ public enum State {
         }
     };
 
-    private static final Map<Integer, State> STATE_BY_ID = new HashMap<>();
-
-    static {
-        for (State registry : values()) {
-            STATE_BY_ID.put(registry.stateId, registry);
-        }
-    }
-
-    private final int stateId;
     public final ProtocolMappings serverBound = new ProtocolMappings();
     public final ProtocolMappings clientBound = new ProtocolMappings();
-
-    @Nullable
-    public static State getById(int stateId) {
-        return STATE_BY_ID.get(stateId);
-    }
 
     public static class ProtocolMappings {
         private final Map<Version, PacketRegistry> registry = new EnumMap<>(Version.class);

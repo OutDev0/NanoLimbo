@@ -12,9 +12,10 @@ General features:
 * Doesn't spawn threads per player. Use a fixed thread pool.
 * Support for **BungeeCord** and **Velocity** info forwarding.
 * Support for [BungeeGuard](https://www.spigotmc.org/resources/79601/) handshake format.
+* Support for [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/) text format.
 * Multiple versions support.
 * Fully configurable.
-* Lightweight. App size around **4MB**.
+* Lightweight. App size around **5MB**.
 
 ![](https://i.imgur.com/sT8p1Gz.png)
 
@@ -45,8 +46,8 @@ The server **doesn't** support snapshots.
 * `help` - Show help message
 * `conn` - Display number of connections
 * `mem` - Display memory usage stats
+* `version` - Display limbo version
 * `stop` - Stop the server
-* `version` - Current nanolimbo version
 
 Note that the server also will be closed correctly if you just press `Ctrl+C`.
 

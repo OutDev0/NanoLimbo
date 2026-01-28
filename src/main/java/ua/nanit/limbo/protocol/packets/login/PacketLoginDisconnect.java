@@ -26,24 +26,19 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
-import ua.nanit.limbo.util.NbtMessageUtil;
+import ua.nanit.limbo.util.ComponentUtils;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PacketDisconnect implements PacketOut {
+public class PacketLoginDisconnect implements PacketOut {
 
-    private Component componentReason;
-    private String legacyReason;
+    private Component reason;
 
     @Override
     public void encode(@NonNull ByteMessage msg, @NonNull Version version) {
-        if (legacyReason != null) {
-            msg.writeString(String.format("{\"text\": \"%s\"}", legacyReason));
-        } else if (componentReason != null) {
-            msg.writeString(GsonComponentSerializer.gson().serialize(componentReason));
-//            msg.writeNbtMessage(NbtMessageUtil.create(componentReason), version);
-        }
+        GsonComponentSerializer gsonComponentSerializer = ComponentUtils.getJsonChatSerializer(version);
+        msg.writeString(gsonComponentSerializer.serialize(this.reason));
     }
 
     @Override

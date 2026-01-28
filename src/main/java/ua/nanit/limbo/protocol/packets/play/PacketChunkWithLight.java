@@ -26,6 +26,7 @@ import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.MetadataWriter;
 import ua.nanit.limbo.protocol.PacketOut;
 import ua.nanit.limbo.protocol.registry.Version;
+import ua.nanit.limbo.world.VersionedDimension;
 
 import java.util.BitSet;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class PacketChunkWithLight implements PacketOut {
 
     private int x;
     private int z;
+    private VersionedDimension dimension;
 
     @Override
     public void encode(@NonNull ByteMessage buf, @NonNull Version version) {
@@ -49,7 +51,7 @@ public class PacketChunkWithLight implements PacketOut {
         // Skip block entities
         buf.writeVarInt(0);
 
-        writeLightData(buf);
+        writeLightData(buf, version);
     }
 
     @Override
@@ -58,7 +60,7 @@ public class PacketChunkWithLight implements PacketOut {
     }
 
     private void writeBlocksData(@NonNull ByteMessage buf, @NonNull Version version) {
-        int sections = 384 / 16;
+        int sections = this.dimension.getChunkSections(version);
         SinglePaletteFactory singlePaletteFactory = new SinglePaletteFactory(0);
         ByteBuf section = createEmptySection(version, singlePaletteFactory, singlePaletteFactory);
         try {
@@ -100,12 +102,12 @@ public class PacketChunkWithLight implements PacketOut {
         }
     }
 
-    private void writeLightData(@NonNull ByteMessage buf) {
+    private void writeLightData(@NonNull ByteMessage buf, @NonNull Version version) {
         buf.writeBitSet(null); // Sky y mask
         buf.writeBitSet(null); // Block y mask
         buf.writeBitSet(null); // Empty sky y mask
         BitSet emptyBlocksYMask = new BitSet();
-        int sections = 384 / 16;
+        int sections = this.dimension.getChunkSections(version);
         for (int i = 0; i < (sections + 2); i++) {
             emptyBlocksYMask.set(i, true);
         }
