@@ -130,6 +130,12 @@ public class PacketHandler {
             return;
         }
 
+        Version minimumSupportedVersion = server.getConfig().getMinimumProtocolVersion();
+        if (conn.getClientVersion().less(minimumSupportedVersion)) {
+            conn.disconnect(Component.text("Please use Minecraft " + minimumSupportedVersion.getDisplayName() + " or newer to join this server.", NamedTextColor.RED));
+            return;
+        }
+
         // LiteBans integration - check for bans
         Optional<Object> kicked = server.getLiteBans()
             .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()))

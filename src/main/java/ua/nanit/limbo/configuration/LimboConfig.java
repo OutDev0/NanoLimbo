@@ -26,6 +26,7 @@ import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import ua.nanit.limbo.configuration.serializers.*;
+import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.TransportType;
 import ua.nanit.limbo.server.data.*;
 import ua.nanit.limbo.world.DimensionType;
@@ -47,6 +48,7 @@ public final class LimboConfig {
 
     private SocketAddress address;
     private int maxPlayers;
+    private Version minimumProtocolVersion;
     private PingData pingData;
 
     private DimensionType dimensionType;
@@ -99,6 +101,7 @@ public final class LimboConfig {
 
         address = conf.node("bind").get(SocketAddress.class);
         maxPlayers = conf.node("maxPlayers").getInt(100);
+        minimumProtocolVersion = conf.node("minProtocolVersion").get(Version.class, Version.UNDEFINED);
         pingData = conf.node("ping").get(PingData.class);
         dimensionType = conf.node("dimension").get(DimensionType.class, DimensionType.THE_END);
         gameMode = conf.node("gameMode").getInt(3);
@@ -189,6 +192,7 @@ public final class LimboConfig {
                 .register(SocketAddress.class, new SocketAddressSerializer())
                 .register(Component.class, new ComponentSerializer())
                 .register(TransportType.class, new TransportTypeSerializer())
+                .register(Version.class, new VersionSerializer())
                 .register(DimensionType.class, new DimensionTypeSerializer())
                 .register(NamespacedKey.class, new NamespacedKeySerializer())
                 .register(InfoForwarding.class, new InfoForwardingSerializer())

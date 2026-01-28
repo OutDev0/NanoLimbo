@@ -11,6 +11,9 @@ bind:
 # Set -1 to make it infinite
 maxPlayers: 100
 
+# Minimum supported protocol version
+minProtocolVersion: -1
+
 # Whether to log players IP Addresses in console.
 logIPs: true
 
