@@ -1,10 +1,10 @@
 package ua.nanit.limbo.litebans;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.util.DurationFormatter;
-import ua.nanit.limbo.util.NbtMessageUtil;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -21,6 +21,7 @@ public record Ban(
     boolean isActive
 ) {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss");
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     public Duration getDuration() {
         return Duration.between(
@@ -57,7 +58,7 @@ public record Ban(
             .getConfig()
             .getLiteBansKickMessageFormat();
 
-        return NbtMessageUtil.MINI_MESSAGE.deserialize(
+        return MINI_MESSAGE.deserialize(
             banMessage
                 .replace("$reason", reason())
                 .replace("$duration", durationString)
