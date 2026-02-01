@@ -2,6 +2,9 @@ package ua.nanit.limbo.litebans;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.util.DurationFormatter;
@@ -20,7 +23,9 @@ public record Ban(
         boolean isActive
 ) {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
     public Instant getExpiry() {
         return Instant.ofEpochMilli(end);
@@ -30,7 +35,6 @@ public record Ban(
         if (end == 0) {
             return !isActive;
         }
-
         return !isActive && Instant.now().isAfter(getExpiry());
     }
 
@@ -42,11 +46,8 @@ public record Ban(
             durationString = "Never (Permanent)";
         } else {
             Instant expiry = getExpiry();
-
             Duration remaining = Duration.between(now, expiry);
-            if (remaining.isNegative()) {
-                remaining = Duration.ZERO;
-            }
+            if (remaining.isNegative()) remaining = Duration.ZERO;
 
             durationString = DurationFormatter.formatDuration(remaining)
                     + " ("
@@ -54,15 +55,23 @@ public record Ban(
                     + ")";
         }
 
-        String banMessage = LimboServer.getInstance()
+        String normalizedReason = reason()
+                .replace("\\r\\n", "\n")
+                .replace("\\n", "\n")
+                .replace("\r\n", "\n")
+                .replace("\r", "\n");
+
+        Component reasonComponent = LEGACY.deserialize(normalizedReason);
+        String template = LimboServer.getInstance()
                 .getConfig()
                 .getLiteBansKickMessageFormat();
 
         return MINI_MESSAGE.deserialize(
-                banMessage
-                        .replace("$reason", reason())
-                        .replace("$duration", durationString)
+                template,
+                TagResolver.builder()
+                        .resolver(Placeholder.component("reason", reasonComponent))
+                        .resolver(Placeholder.unparsed("duration", durationString))
+                        .build()
         );
     }
-
 }
