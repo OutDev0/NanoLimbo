@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "8.3.9"
+    id("com.gradleup.shadow") version "9.3.1"
     id("com.github.gmazzo.buildconfig") version "6.0.7"
 }
 
@@ -46,7 +46,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-
 buildConfig {
     className("BuildConfig")
     packageName("ua.nanit.limbo")
@@ -54,6 +53,10 @@ buildConfig {
 }
 
 tasks {
+    jar {
+        enabled = false
+    }
+
     compileJava {
         options.encoding = "UTF-8"
     }
@@ -63,6 +66,7 @@ tasks {
     }
 
     shadowJar {
+        archiveFileName.set("NanoLimbo.jar")
         from("LICENSE")
 
         manifest {
