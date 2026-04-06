@@ -7,6 +7,8 @@ gson = "2.13.2"
 logback = "1.5.18"
 configurate = "4.2.0"
 kyori-adventure = "4.26.1"
+caffeine = "3.2.3"
+mariadb = "3.5.7"
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
@@ -31,3 +33,6 @@ kyori-adventure-text-serializer-plain = { module = "net.kyori:adventure-text-ser
 kyori-adventure-text-serializer-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "kyori-adventure" }
 kyori-adventure-text-serializer-json-legacy-impl = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "kyori-adventure" }
 kyori-adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "kyori-adventure" }
+
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb" }

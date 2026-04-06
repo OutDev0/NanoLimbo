@@ -35,12 +35,9 @@ dependencies {
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
-//    implementation("com.mysql:mysql-connector-j:9.5.0")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.5.7")
 
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
+    implementation(libs.caffeine)
+    implementation(libs.mariadb.java.client)
 }
 
 tasks.compileJava {
@@ -52,8 +49,8 @@ tasks.build {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 buildConfig {
