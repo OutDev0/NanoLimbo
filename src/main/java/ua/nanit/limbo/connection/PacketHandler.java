@@ -23,6 +23,7 @@ import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import ua.nanit.limbo.LimboConstants;
+import ua.nanit.limbo.litebans.Ban;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.packets.PacketHandshake;
 import ua.nanit.limbo.protocol.packets.configuration.PacketFinishConfiguration;
@@ -39,12 +40,13 @@ import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.ComponentUtils;
-import ua.nanit.limbo.util.UUIDUtils;
 import ua.nanit.limbo.util.ForwardingUtils;
+import ua.nanit.limbo.util.UUIDUtils;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 
 @AllArgsConstructor
 public class PacketHandler {
@@ -137,16 +139,17 @@ public class PacketHandler {
         }
 
         // LiteBans integration - check for bans
-        Optional<Object> kicked = server.getLiteBans()
-            .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()))
-            .map((ban) -> ban.isExpired() ? null : ban) // exclude expired bans
-            .map((ban) -> {
+        Optional<Ban> kicked = server
+                .getLiteBans()
+                .flatMap((liteBans) -> liteBans.getCurrentBan(packet.getUuid()));
+
+        // Ensure ban is not expired
+        if (kicked.isPresent() && !kicked.get().isExpired()) {
+            kicked.ifPresent((ban) -> {
                 Log.info("Disconnected %s (Banned: %s)", packet.getUsername(), ban.reason());
                 conn.disconnect(ban.constructKickMessage());
-                return true;
             });
 
-        if (kicked.isPresent()) {
             return;
         }
 

@@ -49,8 +49,13 @@ tasks.build {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    disableAutoTargetJvm()
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = Charsets.UTF_8.name()
+    options.release = 25
 }
 
 buildConfig {

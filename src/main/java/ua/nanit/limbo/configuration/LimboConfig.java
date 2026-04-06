@@ -158,9 +158,9 @@ public final class LimboConfig {
               <#FB4BAE><bold>PvPHub</bold> <#bbb1c4>-</#bbb1c4> <#FF331C>Banned
               \s
               \s
-              <#FB4BAE><bold>Reason</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$reason</#FFE1F2>
+              <#FB4BAE><bold>Reason</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2><reason></#FFE1F2>
             
-              <#FB4BAE><bold>Expires In</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2>$duration</#FFE1F2>
+              <#FB4BAE><bold>Expires In</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2><duration></#FFE1F2>
             
               \s
               \s

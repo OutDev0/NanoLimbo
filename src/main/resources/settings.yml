@@ -149,3 +149,23 @@ traffic:
   # It is measured over the configured interval as an average bytes/sec
   # Ignored if -1.0
   maxPacketBytesRate: 2048.0
+
+# LiteBans database integration.
+liteBans:
+  # Enable LiteBans lookups during login.
+  enabled: false
+  # JDBC connection string for your LiteBans database.
+  connectionString: "jdbc:mariadb://localhost:3306/litebans?user=root&password=password"
+  # MiniMessage template used when a banned player tries to join.
+  kickMessageFormat: |-
+    
+    
+    <#FB4BAE><bold>PvPHub</bold> <#bbb1c4>-</#bbb1c4> <#FF331C>Banned
+    
+    
+    <#FB4BAE><bold>Reason</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2><reason></#FFE1F2>
+    
+    <#FB4BAE><bold>Expires In</bold> <#bbb1c4>-</#bbb1c4> <#FFE1F2><duration></#FFE1F2>
+    
+    
+    <#FFE1F2>Appeal on our discord <#bbb1c4>-</#bbb1c4> <#00E676>discord.gg/pvphub

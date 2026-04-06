@@ -27,29 +27,42 @@ public record Ban(
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
+    public boolean isPermanent() {
+        return end == 0;
+    }
+
     public Instant getExpiry() {
         return Instant.ofEpochMilli(end);
     }
 
+    public @NotNull Duration getRemainingDuration() {
+        if (isPermanent()) {
+            return Duration.ZERO;
+        }
+
+        Duration remaining = Duration.between(Instant.now(), getExpiry());
+        if (remaining.isNegative()) {
+            return Duration.ZERO;
+        }
+
+        return remaining;
+    }
+
     public boolean isExpired() {
-        if (end == 0) {
+        if (isPermanent()) {
             return !isActive;
         }
-        return !isActive && Instant.now().isAfter(getExpiry());
+
+        return !isActive || getRemainingDuration().isZero();
     }
 
     public @NotNull Component constructKickMessage() {
-        Instant now = Instant.now();
-
         String durationString;
-        if (end == 0) {
+        if (isPermanent()) {
             durationString = "Never (Permanent)";
         } else {
             Instant expiry = getExpiry();
-            Duration remaining = Duration.between(now, expiry);
-            if (remaining.isNegative()) remaining = Duration.ZERO;
-
-            durationString = DurationFormatter.formatDuration(remaining)
+            durationString = DurationFormatter.formatDuration(getRemainingDuration())
                     + " ("
                     + DATE_TIME_FORMATTER.format(expiry.atZone(ZoneId.systemDefault()))
                     + ")";
