@@ -1,44 +1,54 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "9.3.1"
-    id("com.github.gmazzo.buildconfig") version "6.0.7"
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.buildconfig)
 }
 
 group = "ua.nanit"
-version = "1.11.0"
+version = "1.12.0"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.5.23")
-    implementation("org.spongepowered:configurate-yaml:4.2.0")
+    implementation(libs.logback.classic)
+    implementation(libs.configurate.yaml)
 
-    implementation("io.netty:netty-handler:4.2.9.Final")
-    implementation("io.netty:netty-transport-native-epoll:4.2.9.Final:linux-x86_64")
-    implementation("io.netty:netty-transport-native-epoll:4.2.9.Final:linux-aarch_64")
-    implementation("io.netty:netty-transport-native-io_uring:4.2.9.Final:linux-x86_64")
-    implementation("io.netty:netty-transport-native-io_uring:4.2.9.Final:linux-aarch_64")
-    implementation("io.netty:netty-transport-native-kqueue:4.2.9.Final:osx-x86_64")
-    implementation("io.netty:netty-transport-native-kqueue:4.2.9.Final:osx-aarch_64")
+    implementation(libs.netty.handler)
+    implementation(variantOf(libs.netty.transport.native.epoll) { classifier("linux-x86_64") })
+    implementation(variantOf(libs.netty.transport.native.epoll) { classifier("linux-aarch_64") })
+    implementation(variantOf(libs.netty.transport.native.io.uring) { classifier("linux-x86_64") })
+    implementation(variantOf(libs.netty.transport.native.io.uring) { classifier("linux-aarch_64") })
+    implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-x86_64") })
+    implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-aarch_64") })
 
-    implementation("net.kyori:adventure-api:4.26.1")
-    implementation("net.kyori:adventure-text-serializer-gson:4.26.1")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.26.1")
-    implementation("net.kyori:adventure-text-serializer-json-legacy-impl:4.26.1")
-    implementation("net.kyori:adventure-text-serializer-plain:4.26.1")
-    implementation("net.kyori:adventure-text-minimessage:4.26.1")
-    implementation("net.kyori:adventure-nbt:4.26.1")
+    implementation(libs.kyori.adventure.api)
+    implementation(libs.kyori.adventure.text.serializer.gson)
+    implementation(libs.kyori.adventure.text.serializer.legacy)
+    implementation(libs.kyori.adventure.text.serializer.json.legacy.impl)
+    implementation(libs.kyori.adventure.text.serializer.plain)
+    implementation(libs.kyori.adventure.text.serializer.minimessage)
+    implementation(libs.kyori.adventure.nbt)
 
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation(libs.gson)
 
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 //    implementation("com.mysql:mysql-connector-j:9.5.0")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.7")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
+}
+
+tasks.compileJava {
+    options.encoding = "UTF-8"
+}
+
+tasks.build {
+    dependsOn("shadowJar")
 }
 
 java {
