@@ -70,7 +70,7 @@ public final class LimboServer {
         packetHandler = new PacketHandler(this);
         dimensionRegistry = new DimensionRegistry(this);
         dimensionRegistry.load();
-        connections = new Connections(config.isLogIPs());
+        connections = new Connections(config);
 
         PacketSnapshots.initPackets(this);
 

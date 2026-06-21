@@ -18,6 +18,8 @@
 package ua.nanit.limbo.server;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import ua.nanit.limbo.configuration.LimboConfig;
 import ua.nanit.limbo.connection.ClientConnection;
 
 import java.util.Collection;
@@ -26,14 +28,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public final class Connections {
 
-    private final Map<UUID, ClientConnection> connections = new ConcurrentHashMap<>();
-    private final boolean logIPs;
+    private static final String REDACTED_ADDRESS = "<redacted>";
 
-    public Connections(boolean logIPs) {
-        this.logIPs = logIPs;
-    }
+    private final LimboConfig config;
+    private final Map<UUID, ClientConnection> connections = new ConcurrentHashMap<>();
 
     @NonNull
     public Collection<ClientConnection> getAllConnections() {
@@ -46,8 +47,9 @@ public final class Connections {
 
     public void addConnection(@NonNull ClientConnection connection) {
         this.connections.put(connection.getUuid(), connection);
+        Object address = config.isLogPlayersIp() ? connection.getAddress() : REDACTED_ADDRESS;
         Log.info("Player %s connected (%s) [%s]", connection.getUsername(),
-            logIPs ? connection.getAddress() : "IP hidden", connection.getClientVersion());
+                address, connection.getClientVersion());
     }
 
     public void removeConnection(@NonNull ClientConnection connection) {

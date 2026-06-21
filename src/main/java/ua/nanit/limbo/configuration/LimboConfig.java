@@ -75,6 +75,7 @@ public final class LimboConfig {
     private InfoForwarding infoForwarding;
     private long readTimeout;
     private int debugLevel;
+    private boolean logPlayersIp;
 
     private TransportType transportType;
     private int bossGroupSize;
@@ -139,6 +140,7 @@ public final class LimboConfig {
         infoForwarding = conf.node("infoForwarding").get(InfoForwarding.class);
         readTimeout = conf.node("readTimeout").getLong(30000);
         debugLevel = conf.node("debugLevel").getInt(2);
+        logPlayersIp = conf.node("logPlayersIp").getBoolean(true);
 
         transportType = conf.node("netty", "transportType").get(TransportType.class, TransportType.EPOLL);
         bossGroupSize = conf.node("netty", "threads", "bossGroup").getInt(1);
@@ -195,7 +197,7 @@ public final class LimboConfig {
                 .register(Version.class, new VersionSerializer())
                 .register(DimensionType.class, new DimensionTypeSerializer())
                 .register(NamespacedKey.class, new NamespacedKeySerializer())
-                .register(InfoForwarding.class, new InfoForwardingSerializer())
+                .register(InfoForwarding.class, new InfoForwardingSerializer(root))
                 .register(PingData.class, new PingDataSerializer())
                 .register(BossBar.class, new BossBarSerializer())
                 .register(Title.class, new TitleSerializer())
